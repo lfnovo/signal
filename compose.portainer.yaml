@@ -1,0 +1,47 @@
+name: signal
+
+services:
+  database:
+    image: surrealdb/surrealdb:v3.2.0
+    command:
+      - start
+      - --log=info
+      - --user=${SIGNAL_DB_USER:-root}
+      - --pass=${SIGNAL_DB_PASSWORD}
+      - rocksdb:/home/nonroot/database
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    volumes:
+      - signal-database:/home/nonroot
+
+  signal:
+    image: ghcr.io/lfnovo/signal:0.1.0
+    pull_policy: always
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SIGNAL_DB_URL: ws://database:8000/rpc
+      SIGNAL_DB_NAMESPACE: signal
+      SIGNAL_DB_DATABASE: signal
+      SIGNAL_DB_USER: ${SIGNAL_DB_USER:-root}
+      SIGNAL_DB_PASSWORD: ${SIGNAL_DB_PASSWORD}
+      SIGNAL_DATA_DIR: /data
+      SIGNAL_HOST: 0.0.0.0
+      SIGNAL_PASSWORD: ${SIGNAL_PASSWORD}
+      SIGNAL_API_URL: ${SIGNAL_API_URL}
+      SIGNAL_ALLOWED_HOSTS: ${SIGNAL_ALLOWED_HOSTS:-}
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "${SIGNAL_PORT:-8020}:8020"
+    restart: unless-stopped
+    volumes:
+      - signal-data:/data
+
+volumes:
+  signal-data:
+  signal-database:

@@ -21,6 +21,10 @@ docker compose up -d
 
 Open the URL configured in `SIGNAL_API_URL`. Compose keeps application uploads and the database in named volumes. See the [deployment guide](docs/deployment.md) for reverse proxy, upgrades, backups and source installs.
 
+For Portainer, deploy [`compose.portainer.yaml`](compose.portainer.yaml) as a Stack and configure its
+environment variables in the Portainer UI. It pulls the released GHCR image directly and contains no
+local build step. See the [Portainer instructions](docs/deployment.md#portainer) for the required values.
+
 For local development, install [uv](https://docs.astral.sh/uv/) and SurrealDB **3.x**. The defaults expect SurrealDB at `127.0.0.1:8019` with namespace/database `signal` and `root` / `root` credentials.
 
 ```bash

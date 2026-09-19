@@ -42,6 +42,28 @@ Para fixar uma versão em vez de acompanhar `latest`:
 SIGNAL_IMAGE=ghcr.io/lfnovo/signal:0.1.0 docker compose up -d
 ```
 
+## Portainer
+
+Crie uma Stack no Portainer pelo **Web editor** e cole o conteúdo de
+[`compose.portainer.yaml`](../compose.portainer.yaml). Esse arquivo não contém `build:` nem depende
+de um arquivo `.env`: ele baixa diretamente `ghcr.io/lfnovo/signal:0.1.0`.
+
+Antes de fazer o deploy, adicione estas variáveis em **Environment variables** da Stack:
+
+| Variável | Valor |
+| --- | --- |
+| `GEMINI_API_KEY` | Chave do provedor usada pelo Signal |
+| `SIGNAL_PASSWORD` | Senha longa para o login web e a aprovação OAuth do MCP |
+| `SIGNAL_API_URL` | Origem pública completa, como `https://signal.example.com` |
+| `SIGNAL_ALLOWED_HOSTS` | Host público sem protocolo, como `signal.example.com` |
+| `SIGNAL_DB_PASSWORD` | Senha exclusiva para o SurrealDB |
+| `SIGNAL_DB_USER` | Opcional; padrão `root` |
+| `SIGNAL_PORT` | Opcional; porta publicada, padrão `8020` |
+
+Use sempre o mesmo nome para a Stack ao atualizá-la, pois o Portainer associa os volumes ao nome do
+projeto. Para uma nova versão, altere a tag da imagem no YAML, mande o Portainer baixar novamente a
+imagem e faça **Update the stack**. O banco não publica porta no host.
+
 ## HTTPS
 
 Coloque Caddy, nginx, Traefik ou outro proxy reverso na frente de `127.0.0.1:8020`. O proxy deve
