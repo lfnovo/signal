@@ -1,0 +1,23 @@
+compose.portainer.yaml
+  s_4ce55756971322::t_9ccda928c90e31 1-47
+README.md
+  s_4ce55756971322::t_9ccda928c90e31 24-27
+docs/deployment.md
+  s_4ce55756971322::t_9ccda928c90e31 45-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "63e1cde9e50cd6533cbc725d6639cbdc506f6118",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
