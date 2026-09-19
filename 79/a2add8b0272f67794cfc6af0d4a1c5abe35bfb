@@ -1,0 +1,19 @@
+.github/workflows/ci.yml
+  s_4ce55756971322::t_6a4914889d1be1 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "79a2add8b0272f67794cfc6af0d4a1c5abe35bfb",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
