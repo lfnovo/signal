@@ -1,0 +1,157 @@
+src/signal_inbox/static/JetBrainsMono-OFL.txt
+  s_4ce55756971322::t_e235199ee88b96 1-93
+extension/JetBrainsMono-OFL.txt
+  s_4ce55756971322::t_e235199ee88b96 1-93
+extension/manifest.json
+  s_850fb714edef57::t_3dd0e403bdee0e 1-10
+extension/options.html
+  s_850fb714edef57::t_38ea7593524d17 1
+extension/options.js
+  s_850fb714edef57::t_204fb928b7d70f 1-12
+extension/popup.html
+  s_850fb714edef57::t_1e3a538951ecce 1
+extension/popup.js
+  s_850fb714edef57::t_1ad4d21849137e 1-37
+extension/style.css
+  s_850fb714edef57::t_14c0c067672b83 1
+src/signal_inbox/ai.py
+  s_850fb714edef57::t_96f0a671bcb87e 1-267
+src/signal_inbox/auth.py
+  s_4ce55756971322::t_05ef95444d4f91 1-309
+src/signal_inbox/database.py
+  s_850fb714edef57::t_ba373129730ba1 1-200
+src/signal_inbox/extraction.py
+  s_850fb714edef57::t_3a4ac5f8b824ed 1-134
+src/signal_inbox/intake.py
+  s_850fb714edef57::t_56b64ec0b1e755 1-91
+src/signal_inbox/prompts/chat.jinja
+  s_850fb714edef57::t_46792d25400aba 1-18
+src/signal_inbox/prompts/relevance.jinja
+  s_850fb714edef57::t_f98300e242d607 1-9
+src/signal_inbox/prompts/summary.jinja
+  s_850fb714edef57::t_281530465b411a 1-8
+src/signal_inbox/prompts/summary_topics.jinja
+  s_850fb714edef57::t_b6c082d449b78e 1-18
+src/signal_inbox/providers.py
+  s_850fb714edef57::t_670faa236ddce5 1-125
+src/signal_inbox/search.py
+  s_850fb714edef57::t_43844d9e18f274 1-333
+src/signal_inbox/static/favicon.svg
+  s_850fb714edef57::t_df3080b84aa134 1
+src/signal_inbox/static/inline-edit.js
+  s_850fb714edef57::t_b0343b605bcbcb 1-73
+src/signal_inbox/static/relevance.js
+  s_850fb714edef57::t_259bd6cc0c9919 1-12
+src/signal_inbox/static/search.js
+  s_850fb714edef57::t_395b555d1b5208 1-42
+src/signal_inbox/static/topic-clusters.js
+  s_850fb714edef57::t_e3febb38f9a669 1-44
+src/signal_inbox/static/topic-overview.js
+  s_850fb714edef57::t_df951ea2f8a7a5 1-75
+src/signal_inbox/static/topic-workspace.js
+  s_850fb714edef57::t_f805592ee9061a 1-190
+src/signal_inbox/static/topics.js
+  s_850fb714edef57::t_465c2a423256c0 1-127
+src/signal_inbox/static/triage.js
+  s_850fb714edef57::t_9d69224b932a1c 1-94
+src/signal_inbox/templates/extraction_fields.html
+  s_850fb714edef57::t_80cb9be45b515b 1-26
+src/signal_inbox/templates/focus.html
+  s_850fb714edef57::t_6fac825bb03399 1-8
+src/signal_inbox/templates/inbox.html
+  s_850fb714edef57::t_be1af8e2feb4d8 1-54
+src/signal_inbox/templates/library.html
+  s_850fb714edef57::t_ff091f5b4b9172 1-8
+src/signal_inbox/templates/personal_relevance.html
+  s_850fb714edef57::t_2eeda07bb4f678 1-5
+src/signal_inbox/templates/search.html
+  s_850fb714edef57::t_75f46e05fb0ead 1-12
+src/signal_inbox/templates/source_row.html
+  s_850fb714edef57::t_ae23b1f4d0ceee 1-16
+src/signal_inbox/templates/source_title.html
+  s_850fb714edef57::t_a44ff8ed30972f 1-4
+src/signal_inbox/templates/source_topics.html
+  s_850fb714edef57::t_1161658eec315e 1-7
+src/signal_inbox/templates/topic.html
+  s_850fb714edef57::t_8e060edb35f088 1-12
+src/signal_inbox/templates/topics.html
+  s_850fb714edef57::t_f8864b45c23b1f 1-21
+src/signal_inbox/templates/triage_preview.html
+  s_850fb714edef57::t_aa8a04b6230f58 1-23
+src/signal_inbox/topic_context.py
+  s_850fb714edef57::t_6fa2dc346d0517 1-46
+src/signal_inbox/topics.py
+  s_850fb714edef57::t_a1f297c105e05b 1-281
+src/signal_inbox/worker.py
+  s_850fb714edef57::t_0320248fea00e7 1-226
+src/signal_inbox/youtube_queue.py
+  s_850fb714edef57::t_1706584cb95c76 1-79
+tests/conftest.py
+  s_850fb714edef57::t_b83edfdfb7604b 1-43
+tests/extension.test.cjs
+  s_850fb714edef57::t_ffbd5da401740e 1-67
+tests/fixtures/notes.txt
+  s_850fb714edef57::t_edced5d14a43dd 1-5
+tests/fixtures/reading.md
+  s_850fb714edef57::t_ceadf7a64977e4 1-8
+tests/keyboard.test.cjs
+  s_850fb714edef57::t_1a8de3b9991134 1-96
+tests/list-actions.test.cjs
+  s_850fb714edef57::t_50a8f19b85a3bb 1-52
+tests/test_auth_mcp.py
+  s_4ce55756971322::t_1925799285c333 1-248
+tests/test_core.py
+  s_850fb714edef57::t_470afbf9f9439e 1-222
+tests/test_extraction.py
+  s_850fb714edef57::t_cde01b476c68b2 1-20
+tests/test_focus.py
+  s_850fb714edef57::t_1d03859cdfa4ba 1-40
+tests/test_inline_edit.py
+  s_850fb714edef57::t_f5951bfd5f12bc 1-105
+tests/test_integration.py
+  s_850fb714edef57::t_68424ba0b99e49 1-344
+tests/test_preview.py
+  s_850fb714edef57::t_4373187f332fbd 1-76
+tests/test_providers.py
+  s_850fb714edef57::t_df22991db213e3 1-77
+tests/test_search.py
+  s_850fb714edef57::t_65a3782ada22a6 1-165
+tests/test_topic_workspace.py
+  s_850fb714edef57::t_3c896014107a33 1-168
+tests/test_topics.py
+  s_850fb714edef57::t_0f5d061eea5c9d 1-147
+tests/test_triage.py
+  s_850fb714edef57::t_0a21f35a246e49 1-143
+tests/test_youtube_queue.py
+  s_850fb714edef57::t_691aaaa6eaf388 1-181
+tests/topic-clusters.test.cjs
+  s_850fb714edef57::t_95db196fb64636 1-30
+tests/topics.test.cjs
+  s_850fb714edef57::t_8fbb90c60873f7 1-65
+uv.lock
+  s_4ce55756971322::t_03d31ba746b240 1-3193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5699f5e984938e00459d3f251c2cbaf0ab09d072",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    },
+    "s_850fb714edef57": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0750d-257b-75c1-b8ab-ecb8635bb32d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
