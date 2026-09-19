@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "extraction_fields.html" import engines_fields, transcription_fields %}
+{% block title %}{{ source.title }} / Signal{% endblock %}
+{% block content %}
+<div class="source-toolbar">
+  <a class="back-link" href="{{ '/library' if source.get('collection') == 'library' else '/' }}">← Back to {{ 'library' if source.get('collection') == 'library' else 'inbox' }}</a>
+  <div class="source-toolbar-actions">
+    <div class="collection-toggle" role="group" aria-label="Source collection">
+      {% for value, label in [('inbox', 'Inbox'), ('library', 'Library')] %}
+      {% set selected = source.get('collection', 'inbox') == value %}
+      <button type="button" data-source-collection="{{ value }}" aria-pressed="{{ 'true' if selected else 'false' }}" {% if selected %}disabled{% endif %}>{{ label }}</button>
+      {% endfor %}
+    </div>
+    <button type="button" id="focus-source" class="focus-toggle" aria-pressed="{{ 'true' if source.get('focused') else 'false' }}" title="{{ 'Remove from Focus' if source.get('focused') else 'Add to Focus' }}"><span aria-hidden="true">{{ '★' if source.get('focused') else '☆' }}</span> Focus</button>
+    <button class="source-delete-small" type="button" data-open-dialog="delete-source-dialog" aria-label="Delete source" title="Delete source"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+  </div>
+</div>
+<section class="detail-heading" id="source-detail" data-source-id="{{ source.id }}" data-status="{{ source.status }}">
+  <div class="eyebrow">{{ 'LINK' if source.kind == 'url' else 'FILE' }} / {{ source.created_at|date }}</div>
+  {% with title_level=1 %}{% include 'source_title.html' %}{% endwith %}
+  <div class="detail-origin">{% if source.kind == 'url' %}<a href="{{ source.original }}" target="_blank" rel="noopener noreferrer">{{ source.original }} ↗</a>{% else %}<span>{{ source.original }}</span>{% endif %}<span class="status {{ source.status }}">{{ {'pending':'Queued', 'processing':'Processing', 'ready':'Ready', 'error':'Failed'}[source.status] }}</span></div>
+</section>
+
+<dialog class="action-dialog compact-dialog" id="delete-source-dialog" aria-labelledby="delete-source-title"><div class="dialog-heading"><h2 id="delete-source-title">Let this one go?</h2><button class="text-button" type="button" data-close-dialog aria-label="Close delete dialog">✕</button></div><p>This permanently deletes <strong>{{ source.title }}</strong>, its extracted content, summary, embeddings and chat history{% if source.kind == 'file' %}, plus the file copy stored by Signal{% endif %}.</p><p class="muted">Your global topics stay. This cannot be undone.</p><div class="dialog-footer"><button type="button" class="button" data-close-dialog autofocus>Keep this find</button><button type="button" class="button danger-button" id="delete-source">Delete permanently</button></div></dialog>
+{% if source.status == 'error' %}<div class="error-panel" role="alert"><strong>This one hit a snag.</strong><p>{{ source.error }}</p><p>Step: {{ {'extracting':'extraction', 'summarizing':'summary', 'embedding':'embeddings', 'waiting':'queue'}.get(source.stage, source.stage) }}</p><button class="button" id="retry-button">Try again</button></div>{% endif %}
+{% if source.status in ['pending', 'processing'] %}<div class="processing-panel" role="status"><span class="pulse"></span><div><strong id="processing-heading">{{ 'A short YouTube breather' if source.stage == 'youtube_wait' else 'Connecting the dots' }}</strong><p id="processing-description">{{ 'This video is waiting for its turn. YouTube extractions are spaced 3–5 minutes apart; other finds keep moving.' if source.stage == 'youtube_wait' else 'Reading your find, taking notes and making it chat-ready. This page updates automatically.' }}</p></div></div>{% endif %}
+{% if source.regenerate_requested %}<p class="version-notice">A fresh perspective is on its way. Your previous summary stays here until it’s ready.</p>{% endif %}
+{% if source.reprocess_requested and source.content %}<p class="version-notice">You’re viewing the previous extraction. It stays safe until the new version is ready.</p>{% endif %}
+<div class="detail-grid">
+  <div class="reading-column">
+    {% if youtube_video_id %}<section class="panel source-video-panel"><div class="section-label">▶ PRESS PLAY</div><div class="preview-video"><iframe src="https://www.youtube-nocookie.com/embed/{{ youtube_video_id }}" title="YouTube player: {{ source.title }}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe><a href="https://www.youtube.com/watch?v={{ youtube_video_id }}" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a></div></section>{% endif %}
+    <section class="panel summary-panel"><div class="section-label"><span class="cross">✳</span> THE SHORT VERSION <span class="hint">{{ source.summary_language|default('AI') }}</span><button type="button" class="text-button section-action" data-open-dialog="regenerate-dialog" {% if source.status != 'ready' and source.status != 'error' or not source.chunks %}disabled{% endif %}>Regenerate ↗</button></div>{% if source.summary %}<div class="prose">{{ source.summary|markdown }}</div>{% else %}<p class="placeholder">The short version is on its way.</p>{% endif %}
+    {% include 'source_topics.html' %}</section>
+    {% include 'personal_relevance.html' %}
+    <section class="panel content-panel"><div class="section-label">▤ THE FULL STORY <span class="hint">{{ source.content|length }} CHARACTERS</span><button type="button" class="text-button section-action" data-open-dialog="reprocess-dialog" {% if source.status in ['pending', 'processing'] %}disabled{% endif %}>Reprocess ↗</button></div>{% if source.content %}<div class="prose source-content">{{ source.content|markdown }}</div>{% else %}<p class="placeholder">The full story will land here once it’s extracted.</p>{% endif %}</section>
+  </div>
+  <aside class="chat-panel panel"><div class="chat-heading"><div><span class="cross">✳</span><h2>Ask this find</h2></div><button id="clear-chat" class="text-button" {% if source.status != 'ready' %}disabled{% endif %}>Clear chat</button></div><p class="chat-description">Follow a hunch. The answers start with this source.</p>
+    <div id="chat-history" aria-live="polite">
+      {% for turn in history %}<article class="chat-turn"><div class="chat-question"><span class="tiny-label">YOU</span><p>{{ turn.question }}</p></div><div class="chat-answer"><span class="tiny-label">SIGNAL</span><div class="prose">{{ turn.answer|markdown }}</div>{% if turn.evidence %}<details><summary>Peek at the receipts</summary>{% for chunk in turn.evidence %}<div class="evidence"><strong>[{{ chunk.index + 1 }}]</strong><p>{{ chunk.text }}</p></div>{% endfor %}</details>{% endif %}</div></article>
+      {% else %}<div class="chat-empty"><span>↳</span><p data-copy="chatEmpty">There’s a good question hiding in here.</p></div>{% endfor %}
+    </div>
+    <div id="archived-history-slot">{% if archived_history %}<details class="archived-history"><summary>Previous extraction chats ({{ archived_history|length }})</summary><p class="muted">These answers refer to an earlier extraction and aren’t sent to the current chat.</p>{% for turn in archived_history %}<article class="chat-turn"><div class="chat-question"><span class="tiny-label">YOU · VERSION {{ turn.get('revision', 0) + 1 }}</span><p>{{ turn.question }}</p></div><div class="prose">{{ turn.answer|markdown }}</div><details><summary>Original passages</summary>{% for chunk in turn.evidence %}<div class="evidence"><strong>[{{ chunk.index + 1 }}]</strong><p>{{ chunk.text }}</p></div>{% endfor %}</details></article>{% endfor %}</details>{% endif %}
+    </div>
+    <form id="chat-form"><label class="sr-only" for="question">Your question about this source</label><textarea id="question" name="question" rows="3" maxlength="4000" placeholder="What caught your curiosity?" data-copy="question" required {% if source.status != 'ready' %}disabled{% endif %}></textarea><div class="chat-form-bottom"><span>OPTION / ALT + ENTER TO SEND</span><button class="button primary" type="submit" {% if source.status != 'ready' %}disabled{% endif %}>Ask away ↗</button></div></form>
+    <p class="chat-footnote">AI can miss the plot. Check the cited passages.</p>
+  </aside>
+</div>
+{% if extraction is defined %}
+<dialog class="action-dialog" id="reprocess-dialog" aria-labelledby="reprocess-title">
+  <div class="dialog-heading"><h2 id="reprocess-title">Give it another read.</h2><button type="button" class="text-button" data-close-dialog aria-label="Close reprocess dialog">✕</button></div>
+  <form id="reprocess-form">
+    <p class="muted">Choose a different reader for this find. Your defaults stay unchanged.</p>
+    {% if source.extraction_settings %}<p class="muted last-extraction">Last extraction request: web / {{ source.extraction_settings.url_engine }} · documents / {{ source.extraction_settings.document_engine }} · transcription / {{ source.extraction_settings.stt_provider }} / {{ source.extraction_settings.stt_model }}</p>{% endif %}
+    <fieldset class="reprocess-controls" {% if source.status in ['pending', 'processing'] %}disabled{% endif %}>
+      {{ engines_fields('reprocess-', extraction, engines) }}
+      {{ transcription_fields('reprocess-', extraction, providers) }}
+      <div class="preferences-footer"><p class="muted">We’ll rebuild the extraction, summary and embeddings. Previous chats are kept separately so old answers don’t get mixed into the new version.</p><button class="button primary" type="submit">Reprocess this find ↗</button></div>
+    </fieldset>
+  </form>
+</dialog>
+{% endif %}
+<dialog class="action-dialog compact-dialog" id="regenerate-dialog" aria-labelledby="regenerate-title">
+  <div class="dialog-heading"><h2 id="regenerate-title">A different angle?</h2><button type="button" class="text-button" data-close-dialog aria-label="Close regenerate dialog">✕</button></div>
+  <p class="muted">We’ll rewrite the short version and refresh suggested topics. Topics you’ve picked stay put.</p>
+  <form id="regenerate-form"><label for="summary-steering">Give it a nudge <span class="muted">/ optional</span></label>
+    <textarea id="summary-steering" autofocus rows="4" maxlength="2000" placeholder="Focus on the practical takeaways. Less background, more what I can try…"></textarea>
+    <div class="dialog-footer"><button type="button" class="text-button" data-close-dialog>Cancel</button><button class="button primary" type="submit">Regenerate ↗</button></div>
+  </form>
+</dialog>
+
+{% endblock %}

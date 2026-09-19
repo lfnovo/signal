@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101014">
+  <meta name="description" content="A home for your links, files and rabbit holes.">
+  <title>{% block title %}Signal / Inbox{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ asset_url('style.css') if asset_url is defined else '/static/style.css?v=extraction-ui' }}">
+  <script src="{{ asset_url('app.js') if asset_url is defined else '/static/app.js?v=extraction-ui' }}" defer></script>
+  <script src="{{ asset_url('inline-edit.js') }}" defer></script>
+  <script src="{{ asset_url('topics.js') }}" defer></script>
+  <script src="{{ asset_url('keyboard.js') }}" defer></script>
+  <script src="{{ asset_url('search.js') }}" defer></script>
+  <script src="{{ asset_url('relevance.js') }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="/" class="brand" aria-label="Signal — home"><span class="brand-icon">ϟ</span>signal<span class="brand-dot">.</span></a>
+    <div class="global-search"><form action="/search" method="get" role="search" id="global-search-form"><label class="sr-only" for="global-search-query">Search your finds and topics</label><input type="search" id="global-search-query" name="q" maxlength="500" placeholder="Find that rabbit hole…" autocomplete="off" aria-controls="search-suggestions" aria-expanded="false"><button type="submit" class="text-button" aria-label="Search">↗</button><kbd aria-hidden="true">/</kbd></form><div id="search-suggestions" class="search-suggestions" hidden></div></div>
+    <nav class="mobile-nav" aria-label="Workspace"><a href="/">Inbox</a><a href="/library">Library</a><a href="/focus">Focus</a><a href="/topics">Topics</a></nav>
+    <span class="local"><i></i> LOCAL</span>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="nav-caption">WORKSPACE</div>
+      <a href="/" class="nav-item {{ 'active' if request.url.path == '/' or (source is defined and source.get('collection', 'inbox') != 'library') else '' }}"><span>▤</span> Inbox <span class="nav-count" data-nav-count="inbox" aria-label="Inbox count"></span></a>
+      <a href="/library" class="nav-item {{ 'active' if request.url.path == '/library' or (source is defined and source.get('collection') == 'library') else '' }}"><span>▥</span> Library <span class="nav-count" data-nav-count="library" aria-label="Library count"></span></a>
+      <a href="/focus" class="nav-item {{ 'active' if request.url.path == '/focus' else '' }}"><span>☆</span> Focus <span class="nav-count" data-nav-count="focus" aria-label="Focus count"></span></a>
+      <a href="/topics" class="nav-item {{ 'active' if request.url.path.startswith('/topics') else '' }}"><span>#</span> Topics <span class="nav-count" data-nav-count="topics" aria-label="Topics count"></span></a>
+      {% if auth_enabled %}<a href="/connections" class="nav-item {{ 'active' if request.url.path == '/connections' else '' }}"><span>⌁</span> Connections</a>{% endif %}
+      <div class="sidebar-note"><span class="tiny-label">CAPTURE. CONNECT.</span><p>Good finds.<br>Long shelf life.</p><div class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <button class="text-button keyboard-help-trigger" type="button" data-open-dialog="keyboard-help">Keyboard shortcuts <kbd>?</kbd></button>
+      <div class="sidebar-bottom"><span class="tiny-label">SIGNAL v0.1</span><span>Your stash. Your machine.</span>{% if auth_enabled %}<form action="/logout" method="post"><button class="text-button" type="submit">Sign out</button></form>{% endif %}</div>
+    </aside>
+    <main>{% block content %}{% endblock %}</main>
+  </div>
+  <dialog class="action-dialog compact-dialog" id="keyboard-help" aria-labelledby="keyboard-help-title">
+    <div class="dialog-heading"><h2 id="keyboard-help-title">Less mouse. More flow.</h2><button class="text-button" type="button" data-close-dialog aria-label="Close keyboard shortcuts">✕</button></div>
+    <dl class="shortcut-list"><dt><kbd>/</kbd></dt><dd>Focus global search</dd><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Inbox · Library · Focus · Topics</dd><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Previous / next find or topic</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Move between controls or topic cards</dd><dt><kbd>Space</kbd></dt><dd>Quick preview / close preview</dd><dt><kbd>Enter</kbd></dt><dd>Open selected find or topic</dd><dt><kbd>⌥ / Alt</kbd> <kbd>Enter</kbd></dt><dd>Send a source chat question</dd><dt><kbd>I</kbd></dt><dd>Move to Inbox</dd><dt><kbd>L</kbd></dt><dd>Move to Library</dd><dt><kbd>F</kbd></dt><dd>Toggle Focus</dd><dt><kbd>Backspace</kbd> / <kbd>⌘ / Ctrl</kbd> <kbd>Delete</kbd></dt><dd>Delete with confirmation (Backspace also works)</dd><dt><kbd>Esc</kbd></dt><dd>Close preview · Back from source · Clear selection</dd><dt><kbd>?</kbd></dt><dd>This cheat sheet</dd></dl>
+    <p class="muted">Single-key shortcuts pause while you type or use another dialog. Tab still works as usual.</p>
+    <label class="shortcut-preference"><input id="keyboard-enabled" type="checkbox" checked> Enable single-key shortcuts</label>
+  </dialog>
+  <dialog class="action-dialog quick-preview" id="quick-preview" aria-labelledby="preview-title">
+    <div class="dialog-heading"><span class="tiny-label" id="preview-kind">QUICK PREVIEW</span><button class="text-button" type="button" data-close-dialog aria-label="Close preview">✕</button></div>
+    <h2 id="preview-title"></h2><div id="preview-body" tabindex="-1" class="prose" aria-live="polite"></div>
+    <div class="preview-footer"><span class="muted">↑ ↓ Browse · I Inbox · L Library · F Focus · Space Close</span><a id="preview-open" class="text-button">Open source ↗</a></div>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

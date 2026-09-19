@@ -1,0 +1,5 @@
+<section class="personal-relevance panel" data-relevance-source="{{ source.id }}">
+  <div class="section-label">✧ WHY THIS MIGHT MATTER TO YOU <button class="text-button" type="button" data-refresh-relevance {% if source.status != 'ready' %}disabled{% endif %}>{{ 'Refresh' if source.personal_relevance else 'Connect to my interests' }} ↗</button></div>
+  <p class="muted relevance-notice">Personal interpretation · grounded in this find{% if source.personal_relevance and source.relevance_stale %} · Your topic context has changed. Refresh for a current perspective.{% endif %}</p>
+  <div class="prose relevance-body">{% if source.personal_relevance %}{{ source.personal_relevance|markdown }}{% else %}<p class="muted">Add your interests to official topics to help Signal connect the dots.</p>{% endif %}</div>
+</section>

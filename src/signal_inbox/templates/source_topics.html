@@ -1,0 +1,7 @@
+<div class="source-topics" id="topic-editor" data-source-id="{{ source.id }}" data-catalog="{{ all_topics|tojson|forceescape }}" data-attached="{{ source_topics|tojson|forceescape }}">
+  <div class="topics-caption"><span class="tiny-label">FOLLOW THE THREADS</span><span class="muted topic-legend">✓ Official · ✧ Suggested</span></div>
+  <div class="topic-chips" id="inline-topic-chips">{% for topic in source_topics %}<a href="/topics/{{ topic.id }}" class="topic-chip {{ 'official' if topic.official else 'suggested' }}">{{ '✓' if topic.official else '✧' }} {{ topic.name }}</a>{% endfor %}</div>
+  <div class="topic-picker"><label class="sr-only" for="topic-query">Find or create a topic</label><input id="topic-query" type="text" maxlength="80" placeholder="+ Find or create a topic…" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="topic-results" aria-describedby="topic-picker-help"><div id="topic-results" class="topic-results" role="listbox" aria-label="Matching topics" hidden></div></div>
+  <p id="topic-picker-help" class="muted topic-picker-help">Type to find a thread. New topics become official.</p>
+  <span id="topic-edit-status" class="sr-only" role="status" aria-live="polite"></span>
+</div>

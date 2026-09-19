@@ -1,0 +1,43 @@
+name: signal
+
+services:
+  database:
+    image: surrealdb/surrealdb:v3.2.0
+    command:
+      - start
+      - --log=info
+      - --user=${SIGNAL_DB_USER:-root}
+      - --pass=${SIGNAL_DB_PASSWORD:-root}
+      - rocksdb:/home/nonroot/database
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    volumes:
+      - signal-database:/home/nonroot
+
+  signal:
+    image: ${SIGNAL_IMAGE:-ghcr.io/lfnovo/signal:latest}
+    build: .
+    env_file: .env
+    environment:
+      SIGNAL_DB_URL: ws://database:8000/rpc
+      SIGNAL_DATA_DIR: /data
+      SIGNAL_HOST: 0.0.0.0
+      SIGNAL_PASSWORD: ${SIGNAL_PASSWORD:?Set SIGNAL_PASSWORD in .env}
+      SIGNAL_API_URL: ${SIGNAL_API_URL:?Set SIGNAL_API_URL in .env}
+      SIGNAL_ALLOWED_HOSTS: ${SIGNAL_ALLOWED_HOSTS:-}
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "${SIGNAL_PORT:-8020}:8020"
+    restart: unless-stopped
+    volumes:
+      - signal-data:/data
+
+volumes:
+  signal-data:
+  signal-database:

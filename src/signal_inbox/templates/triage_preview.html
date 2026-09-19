@@ -1,0 +1,23 @@
+<div class="triage-toolbar">
+  <div class="triage-decisions" aria-label="Decide what to keep">
+    <button class="button primary" type="button" data-triage-action="collection" data-value="library">Library <kbd>L</kbd></button>
+    <button class="button" type="button" data-triage-action="focus" aria-pressed="{{ 'true' if source.focused else 'false' }}" title="Focus is a bookmark; this find stays in Inbox">{{ '★' if source.focused else '☆' }} Focus <kbd>F</kbd></button>
+    <button class="button triage-delete" type="button" data-triage-action="delete">Delete <kbd>⌫</kbd></button>
+  </div>
+  <a class="text-button" href="/sources/{{ source.id }}">Open full page ↗</a>
+</div>
+<div class="triage-reading" data-preview-source="{{ source.id }}">
+  <div class="tiny-label">{{ 'LINK' if source.kind == 'url' else 'FILE' }} · {{ source.created_at|date }} · {{ source.status }}</div>
+  {% include 'source_title.html' %}
+  {% if source.kind == 'url' %}<a class="triage-origin" href="{{ source.original }}" target="_blank" rel="noopener noreferrer">{{ source.original }} ↗</a>{% endif %}
+  {% if source.status == 'pending' and source.stage == 'youtube_wait' %}<p class="muted">A short YouTube breather. Video extractions are spaced 3–5 minutes apart; other finds keep moving.</p>{% endif %}
+  {% include 'source_topics.html' %}
+  <section class="triage-summary"><div class="section-label"><span class="cross">✳</span> THE SHORT VERSION <span class="hint">{{ source.summary_language|default('AI') }}</span></div>
+  {% if source.summary %}<div class="prose">{{ source.summary|markdown }}</div>
+  {% elif source.status == 'error' %}<p class="placeholder">This find hit a snag during processing. You can still organize it, or open the full page to retry.</p>
+  {% else %}<p class="placeholder">The short version is on its way.</p>{% endif %}</section>
+  {% include 'personal_relevance.html' %}
+  {% if youtube_video_id %}<details class="triage-full"><summary>▶ Watch video</summary><div class="preview-video" data-youtube-id="{{ youtube_video_id }}"><a href="https://www.youtube.com/watch?v={{ youtube_video_id }}" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a></div></details>{% endif %}
+  <details class="triage-full" {% if not source.summary and source.content %}open{% endif %}><summary>▤ The full story</summary><div class="prose">{% if source.content %}{{ source.content|markdown }}{% else %}<p class="placeholder">No extracted content yet.</p>{% endif %}</div></details>
+  <div class="triage-key-hint muted">↑ ↓ Browse · L Library · F Focus · Enter Full page</div>
+</div>

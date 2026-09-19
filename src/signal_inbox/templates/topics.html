@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Topics / Signal{% endblock %}
+{% block content %}
+<div class="topics-workspace" id="topics-workspace" data-initial-topic="{{ initial_topic|default('') }}">
+  <section class="page-heading"><div><div class="eyebrow">CONNECT THE DOTS</div><h1>Your interests. <em>In context.</em></h1><p>A vocabulary for what you’re trying to understand.</p></div><label class="topics-scope"><input type="checkbox" id="topics-include-inbox"> Include Inbox</label></section>
+  <div class="topics-view-switch" role="group" aria-label="Topics view"><button type="button" class="button" data-workspace-view="overview" aria-pressed="false">Overview</button><button type="button" class="button" data-workspace-view="topics" aria-pressed="true">Topics</button></div>
+  <section id="topic-overview" class="panel" aria-label="Topic clusters" hidden><p class="muted">Connecting your constellation…</p></section>
+  <div class="topics-layout">
+    <aside class="topics-directory panel" aria-label="Find a topic">
+      <label class="sr-only" for="topics-query">Find a topic</label><input id="topics-query" type="search" placeholder="Find a thread…" autocomplete="off">
+      <div class="topics-directory-filters"><label>Show<select id="topics-status" aria-label="Topic status"><option value="all">All topics</option><option value="official">Official</option><option value="suggested">Suggested</option></select></label><label>Sort by<select id="topics-sort" aria-label="Sort topics"><option value="name">Name</option><option value="count">Most links &amp; files</option><option value="count-asc">Fewest links &amp; files</option><option value="activity">Recent activity</option></select></label></div>
+      <div id="topics-directory-list" aria-label="Topics"><p class="muted">Finding your threads…</p></div>
+      <form id="workspace-new-topic"><label class="sr-only" for="workspace-topic-name">New topic name</label><input id="workspace-topic-name" maxlength="80" placeholder="Start a new thread…" required><button class="button" type="submit">+ Create</button></form>
+    </aside>
+    <section class="topic-workbench panel" id="topic-workbench" aria-label="Topic details"><div class="empty"><h2>Pick a thread.</h2><p>Your context and connections live here.</p></div></section>
+  </div>
+</div>
+<script src="{{ asset_url('topic-clusters.js') }}" defer></script>
+<script src="{{ asset_url('topic-overview.js') }}" defer></script>
+<script src="{{ asset_url('topic-workspace.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Approve connection / Signal{% endblock %}
+{% block content %}
+<section class="auth-decision panel">
+  <div class="eyebrow">AGENT CONNECTION</div>
+  <h1>Let <em>{{ client_name }}</em> use Signal?</h1>
+  {% if client_uri %}<p class="muted">Client: {{ client_uri }}</p>{% endif %}
+  <p>This agent will be able to capture, search, read and organize your private library.</p>
+  <div class="permission-list"><span class="tiny-label">REQUESTED ACCESS</span>{% for scope in scopes %}<code>{{ scope }}</code>{% endfor %}</div>
+  <p class="muted">The agent never receives your password. Signal gives it a separate token that you can revoke from Connections.</p>
+  <form method="post" action="/oauth/approve" class="dialog-footer">
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+    <button class="button" type="submit" name="decision" value="deny">Deny</button>
+    <button class="button primary" type="submit" name="decision" value="approve">Approve connection</button>
+  </form>
+</section>
+{% endblock %}

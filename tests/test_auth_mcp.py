@@ -1,0 +1,248 @@
+import base64
+import hashlib
+from dataclasses import replace
+from urllib.parse import parse_qs, urlsplit
+
+import httpx
+import pytest
+from mcp import Client
+from mcp.server.auth.provider import AuthorizationParams
+from mcp.shared.auth import OAuthClientInformationFull
+from pydantic import AnyUrl
+
+from signal_inbox.auth import AuthManager, SignalOAuthProvider
+from signal_inbox.database import Database
+from signal_inbox.mcp_server import build_mcp_server
+from signal_inbox.web import create_app
+
+
+class FakeAI:
+    async def close(self):
+        pass
+
+
+def test_password_sessions_are_signed_expiring_and_bound_to_password(tmp_path):
+    auth = AuthManager("a strong password", tmp_path, secure_cookie=True)
+    token = auth.create_session()
+
+    assert auth.check_password("a strong password")
+    assert not auth.check_password("wrong")
+    assert auth.valid_session(token)
+    assert not auth.valid_session(token + "changed")
+    assert not AuthManager("a new password", tmp_path, True).valid_session(token)
+    assert (tmp_path / "auth.key").stat().st_mode & 0o777 == 0o600
+
+
+@pytest.mark.asyncio
+async def test_web_login_protects_private_routes_and_mcp_publishes_oauth_metadata(settings):
+    protected = replace(settings, password="correct horse battery staple")
+    app = create_app(
+        protected,
+        database=Database(protected),
+        ai=FakeAI(),
+        start_worker=False,
+    )
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://127.0.0.1:8020", follow_redirects=False
+    ) as client:
+        page = await client.get("/", headers={"Accept": "text/html"})
+        assert page.status_code == 303
+        assert page.headers["location"].startswith("/login?next=")
+        assert (await client.get("/api/preferences")).status_code == 401
+
+        failed = await client.post("/login", data={"password": "wrong", "next": "/focus"})
+        assert failed.status_code == 401
+        signed_in = await client.post(
+            "/login", data={"password": protected.password, "next": "/focus"}
+        )
+        assert signed_in.status_code == 303
+        assert signed_in.headers["location"] == "/focus"
+        assert "signal_session=" in signed_in.headers["set-cookie"]
+        assert "HttpOnly" in signed_in.headers["set-cookie"]
+
+        metadata = await client.get("/.well-known/oauth-protected-resource/mcp")
+        assert metadata.status_code == 200
+        assert metadata.json()["resource"] == "http://127.0.0.1:8020/mcp"
+
+
+@pytest.mark.asyncio
+async def test_mcp_catalog_is_shared_by_in_process_and_transport_clients(settings):
+    db = Database(settings)
+    server = build_mcp_server(db, FakeAI())
+    async with Client(server) as client:
+        tools = {tool.name: tool for tool in (await client.list_tools()).tools}
+        templates = {
+            item.uri_template
+            for item in (await client.list_resource_templates()).resource_templates
+        }
+
+    assert {
+        "get_status",
+        "capture_url",
+        "capture_file",
+        "list_sources",
+        "search_sources",
+        "get_source",
+        "ask_source",
+        "move_source_to_library",
+        "move_source_to_inbox",
+        "set_source_focus",
+        "rename_source",
+        "list_topics",
+        "get_topic",
+        "update_topic_context",
+    } <= tools.keys()
+    assert tools["get_source"].annotations.read_only_hint is True
+    assert tools["capture_url"].annotations.read_only_hint is False
+    assert "signal://sources/{identifier}" in templates
+    assert "signal://sources/{identifier}/preview" in templates
+    assert "signal://topics/{identifier}" in templates
+    assert "signal://views/{view}" in templates
+
+
+@pytest.mark.asyncio
+async def test_oauth_approval_issues_refreshes_and_revokes_client_tokens(db):
+    issuer = "https://signal.example"
+    provider = SignalOAuthProvider(db, issuer, issuer + "/mcp")
+    client = OAuthClientInformationFull(
+        client_id="test-client",
+        client_name="Test agent",
+        redirect_uris=[AnyUrl("http://127.0.0.1:8765/callback")],
+        token_endpoint_auth_method="none",
+    )
+    await provider.register_client(client)
+    approval_url = await provider.authorize(
+        client,
+        AuthorizationParams(
+            state="state-value",
+            scopes=["signal"],
+            code_challenge="challenge",
+            redirect_uri=AnyUrl("http://127.0.0.1:8765/callback"),
+            redirect_uri_provided_explicitly=True,
+            resource=issuer + "/mcp",
+        ),
+    )
+    request_id = parse_qs(urlsplit(approval_url).query)["request"][0]
+    assert (await provider.pending(request_id))[1].client_name == "Test agent"
+
+    callback = await provider.finish_authorization(request_id, approved=True)
+    params = parse_qs(urlsplit(callback).query)
+    assert params["state"] == ["state-value"]
+    assert params["iss"] == [issuer]
+    code = await provider.load_authorization_code(client, params["code"][0])
+    issued = await provider.exchange_authorization_code(client, code)
+    access = await provider.load_access_token(issued.access_token)
+    refresh = await provider.load_refresh_token(client, issued.refresh_token)
+    assert access.subject == "owner" and access.resource == issuer + "/mcp"
+    assert refresh.subject == "owner"
+
+    rotated = await provider.exchange_refresh_token(client, refresh, ["signal"])
+    assert await provider.load_access_token(issued.access_token) is None
+    current = await provider.load_access_token(rotated.access_token)
+    await provider.revoke_token(current)
+    assert await provider.load_access_token(rotated.access_token) is None
+
+
+@pytest.mark.asyncio
+async def test_remote_mcp_oauth_flow_reaches_protected_tool_catalog(db):
+    protected = replace(db.settings, password="one private signal password")
+    app = create_app(protected, database=db, ai=FakeAI(), start_worker=False)
+    verifier = "a" * 64
+    challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+    )
+    redirect_uri = "http://127.0.0.1:8765/callback"
+
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://127.0.0.1:8020",
+            follow_redirects=False,
+        ) as client:
+            registration = await client.post(
+                "/register",
+                json={
+                    "client_name": "Integration agent",
+                    "redirect_uris": [redirect_uri],
+                    "token_endpoint_auth_method": "none",
+                    "grant_types": ["authorization_code", "refresh_token"],
+                    "response_types": ["code"],
+                    "scope": "signal",
+                },
+            )
+            assert registration.status_code == 201
+            client_id = registration.json()["client_id"]
+
+            authorization = await client.get(
+                "/authorize",
+                params={
+                    "response_type": "code",
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri,
+                    "state": "test-state",
+                    "code_challenge": challenge,
+                    "code_challenge_method": "S256",
+                    "scope": "signal",
+                    "resource": "http://127.0.0.1:8020/mcp",
+                },
+            )
+            assert authorization.status_code in {302, 303, 307}
+            approval_url = authorization.headers["location"]
+            request_id = parse_qs(urlsplit(approval_url).query)["request"][0]
+
+            signed_in = await client.post(
+                "/login",
+                data={"password": protected.password, "next": approval_url},
+            )
+            assert signed_in.status_code == 303
+            assert (await client.get(approval_url)).status_code == 200
+            approved = await client.post(
+                "/oauth/approve",
+                data={"request_id": request_id, "decision": "approve"},
+            )
+            callback = parse_qs(urlsplit(approved.headers["location"]).query)
+
+            token = await client.post(
+                "/token",
+                data={
+                    "grant_type": "authorization_code",
+                    "client_id": client_id,
+                    "code": callback["code"][0],
+                    "code_verifier": verifier,
+                    "redirect_uri": redirect_uri,
+                    "resource": "http://127.0.0.1:8020/mcp",
+                },
+            )
+            assert token.status_code == 200, token.text
+            access = token.json()["access_token"]
+
+            unauthenticated = await client.post("/mcp", json={})
+            assert unauthenticated.status_code == 401
+            catalog = await client.post(
+                "/mcp",
+                headers={
+                    "Authorization": "Bearer " + access,
+                    "MCP-Protocol-Version": "2026-07-28",
+                    "Mcp-Method": "tools/list",
+                    "Accept": "application/json, text/event-stream",
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/list",
+                    "params": {
+                        "_meta": {
+                            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                            "io.modelcontextprotocol/clientCapabilities": {},
+                            "io.modelcontextprotocol/clientInfo": {
+                                "name": "integration-test",
+                                "version": "1.0",
+                            },
+                        }
+                    },
+                },
+            )
+            assert catalog.status_code == 200, catalog.text
+            names = {tool["name"] for tool in catalog.json()["result"]["tools"]}
+            assert {"search_sources", "ask_source", "update_topic_context"} <= names

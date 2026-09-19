@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "extraction_fields.html" import engines_fields, transcription_fields %}
+{% block content %}
+<div class="inbox-workspace">
+<section class="page-heading"><div><div class="eyebrow">01 / YOUR STASH</div><h1>Make room for <em>the good stuff.</em></h1><p data-copy="welcome">A little sorting. A clearer mind.</p></div><button class="text-button" id="settings-toggle" aria-expanded="false" aria-controls="settings">⚙ Preferences</button></section>
+<section id="settings" class="panel settings" hidden>
+  <form id="preferences-form">
+    <div class="preferences-heading"><h2>Make it your kind of smart.</h2><p class="muted">Choose how Signal reads, listens and connects the dots.</p></div>
+    <div class="preference-language"><label for="language">Summary &amp; chat language</label><input id="language" name="language" value="{{ preferences.language }}" maxlength="80" required aria-describedby="language-help"><p class="muted" id="language-help">The interface speaks English. Your summaries and conversations speak your language.</p></div>
+    {% if engines is defined %}<div class="extraction-defaults"><h3>Give your finds a better read.</h3>{{ engines_fields('', preferences, engines) }}</div>{% endif %}
+    <div class="model-grid">
+      {% for prefix, kind, legend in [('llm', 'language', 'Summaries & chat'), ('embedding', 'embedding', 'Embeddings')] %}
+      <fieldset class="model-settings"><legend>{{ legend }}</legend>
+        <label for="{{ prefix }}-provider">Provider</label>
+        <select id="{{ prefix }}-provider" name="{{ prefix }}_provider" required data-model-prefix="{{ prefix }}">
+          {% for provider in providers[kind] %}<option value="{{ provider.id }}" {% if preferences[prefix + '_provider'] == provider.id %}selected{% endif %}>{{ provider.label }} · {{ provider.credentials }}</option>{% endfor %}
+        </select>
+        <label for="{{ prefix }}-model">Model ID</label>
+        <input id="{{ prefix }}-model" name="{{ prefix }}_model" value="{{ preferences[prefix + '_model'] }}" maxlength="200" required list="{{ prefix }}-models" autocomplete="off" aria-describedby="{{ prefix }}-model-status">
+        <datalist id="{{ prefix }}-models"><option value="{{ preferences[prefix + '_model'] }}"></option></datalist>
+        <button class="text-button find-models" type="button" data-model-prefix="{{ prefix }}" data-model-kind="{{ kind }}">Fetch model suggestions ↗</button>
+        <p id="{{ prefix }}-model-status" class="muted model-status" role="status">Enter a model ID, or ask the provider for suggestions.</p>
+      </fieldset>
+      {% endfor %}
+      {% if providers.get('speech_to_text') %}{{ transcription_fields('', preferences, providers) }}{% endif %}
+    </div>
+    <p class="muted">Keys stay in your .env. “Key found” confirms setup, not credits or model access.</p>
+    <div class="preferences-footer"><p class="muted">Changes apply to the next capture or message. Existing summaries and source embeddings stay as they are.</p><button class="button primary" type="submit">Save preferences</button></div>
+  </form>
+</section>
+<section class="capture panel">
+  <div class="section-label"><span class="cross">+</span> DUMP YOUR FINDINGS <span class="hint">LINK OR FILE</span></div>
+  <form id="url-form" class="capture-form"><label class="sr-only" for="url">Link to save</label><span class="input-icon" aria-hidden="true">↗</span><input id="url" name="url" type="url" placeholder="Paste your latest obsession…" data-copy="url" required autocomplete="off"><button type="submit" class="button primary">Save it <span>↗</span></button></form>
+  <div class="capture-bottom"><form id="file-form"><label class="upload-label" for="file">↑ Upload a file</label><input class="sr-only" type="file" name="file" id="file"><span id="file-name" class="muted">PDFs, docs, text or media · up to 100 MB</span></form><span class="auto-note"><i></i> You save. AI connects the dots.</span></div>
+</section>
+<div class="triage-workspace" id="triage-workspace">
+<section class="library triage-list">
+  <div class="library-heading"><h2>Finds <span class="count">{{ sources|length }}{% if has_next %}+{% endif %}</span></h2><span class="sort-label">↓ NEWEST FIRST</span></div>
+  <div id="source-list" data-poll="inbox">
+  {% for source in sources %}
+    {% set date = source.created_at[:10] %}
+    {% if loop.first or date != sources[loop.index0 - 1].created_at[:10] %}<div class="date-divider"><span>{{ date }}</span><hr></div>{% endif %}
+    {% include 'source_row.html' %}
+  {% else %}
+    <div class="empty"><div class="empty-glyph">[ + ]</div><h3>Nothing here. Yet.</h3><p>Found something you can’t stop thinking about?<br>Save a link or file. We’ll handle the reading notes.</p><button class="text-button" id="focus-url">Save your first find ↗</button></div>
+  {% endfor %}
+  </div>
+  <nav class="pagination" aria-label="Pagination">{% if page > 1 %}<a href="/?page={{ page - 1 }}">← Previous</a>{% endif %}<span>Page {{ page }}</span>{% if has_next %}<a href="/?page={{ page + 1 }}">Next →</a>{% endif %}</nav>
+</section>
+<aside class="triage-reader panel" id="triage-reader" aria-label="Selected find"><div class="empty"><h3>Pick a thread.</h3><p>Select a find to review its summary and topics.</p></div></aside>
+</div>
+</div>
+<script src="{{ asset_url('triage.js') }}" defer></script>
+{% endblock %}

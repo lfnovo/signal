@@ -1,0 +1,16 @@
+<article tabindex="-1" class="source-row" data-source-id="{{ source.id }}" data-status="{{ source.status }}">
+  <a class="source-icon {{ source.kind }}" href="/sources/{{ source.id }}" aria-label="Open {{ source.title }}">{{ '↗' if source.kind == 'url' else '▤' }}</a>
+  <div class="source-info"><div class="source-meta"><span>{{ 'LINK' if source.kind == 'url' else 'FILE' }}</span><span>{{ source.created_at|date }}</span><span class="collection-badge">{{ 'Library' if source.get('collection') == 'library' else 'Inbox' }}</span><span class="row-processing {{ source.status }}">{{ 'YouTube cooldown' if source.status == 'pending' and source.stage == 'youtube_wait' else {'pending':'Queued', 'processing':'Processing', 'ready':'Ready', 'error':'Failed'}[source.status] }}</span></div><h3>{% if source.focused %}<span class="focus-mark" title="In Focus" aria-label="In Focus">★</span> {% endif %}<a class="source-title-link" href="/sources/{{ source.id }}">{{ source.title }}</a></h3><p>{{ source.summary if source.match_label else (source.summary[:160] if source.summary else source.original) }}{% if not source.match_label and source.summary and source.summary|length > 160 %}…{% endif %}</p>
+  {% if source.match_label %}<div class="search-match-label">{{ source.match_type }} · {{ source.match_label }}</div>{% endif %}
+  {% if source.topics %}<div class="row-topics">{% for topic in source.topics %}<a class="topic-chip {{ 'official' if topic.official else 'suggested' }}" href="/topics/{{ topic.id }}" title="{{ 'Official topic' if topic.official else 'AI suggestion' }}">{{ '✓' if topic.official else '✧' }} {{ topic.name }}</a>{% endfor %}</div>{% endif %}</div>
+  <div class="row-actions" aria-label="Triage {{ source.title }}">
+    <div class="collection-toggle" role="group" aria-label="Source collection">
+      {% for value, label in [('inbox', 'Inbox'), ('library', 'Library')] %}
+      {% set selected = source.get('collection', 'inbox') == value %}
+      <button type="button" data-row-action="collection" data-value="{{ value }}" aria-pressed="{{ 'true' if selected else 'false' }}" {% if selected %}disabled{% endif %}>{{ label }}</button>
+      {% endfor %}
+    </div>
+    <button class="focus-toggle row-focus" type="button" data-row-action="focus" aria-pressed="{{ 'true' if source.focused else 'false' }}" aria-label="{{ 'Remove from Focus' if source.focused else 'Add to Focus' }}" title="{{ 'Remove from Focus' if source.focused else 'Add to Focus' }}">{{ '★' if source.focused else '☆' }}</button>
+    <button class="source-delete-small" type="button" data-row-action="delete" aria-label="Delete source" title="Delete source"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+  </div>
+</article>

@@ -1,0 +1,26 @@
+{% macro engines_fields(prefix, values, choices) %}
+<div class="engine-grid">
+  {% for key, label in [('url_engine', 'Web pages'), ('document_engine', 'Documents & PDF links')] %}
+  <div class="engine-field"><label for="{{ prefix }}{{ key|replace('_', '-') }}">{{ label }}</label>
+    <select id="{{ prefix }}{{ key|replace('_', '-') }}" name="{{ key }}" required>
+      {% for value, label in choices[key] %}<option value="{{ value }}" {% if values[key] == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endfor %}
+</div>
+<p class="muted engine-help">Docling handles layout, tables and OCR. Firecrawl needs its API key; Crawl4AI needs a service or local browser setup. Keys and service addresses stay in .env.</p>
+{% endmacro %}
+
+{% macro transcription_fields(prefix, values, choices) %}
+<fieldset class="model-settings"><legend>Audio & video transcription</legend>
+  <label for="{{ prefix }}stt-provider">Provider</label>
+  <select id="{{ prefix }}stt-provider" name="stt_provider" required data-model-prefix="{{ prefix }}stt">
+    {% for provider in choices.get('speech_to_text', []) %}<option value="{{ provider.id }}" {% if values.stt_provider == provider.id %}selected{% endif %}>{{ provider.label }} · {{ provider.credentials }}</option>{% endfor %}
+  </select>
+  <label for="{{ prefix }}stt-model">Model ID</label>
+  <input id="{{ prefix }}stt-model" name="stt_model" value="{{ values.stt_model }}" maxlength="200" required list="{{ prefix }}stt-models" autocomplete="off" aria-describedby="{{ prefix }}stt-model-status">
+  <datalist id="{{ prefix }}stt-models"><option value="{{ values.stt_model }}"></option></datalist>
+  <button class="text-button find-models" type="button" data-model-prefix="{{ prefix }}stt" data-model-kind="speech_to_text">Fetch model suggestions ↗</button>
+  <p id="{{ prefix }}stt-model-status" class="muted model-status" role="status">Used when media needs transcription. YouTube may use existing captions instead.</p>
+</fieldset>
+{% endmacro %}

@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.signal/
+.claude/settings.local.json
+.playwright-mcp/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+.DS_Store

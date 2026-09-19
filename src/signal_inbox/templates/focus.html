@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Focus / Signal{% endblock %}
+{% block content %}
+<section class="page-heading"><div><div class="eyebrow">ON YOUR RADAR</div><h1>Give it <em>attention.</em></h1><p>A few good finds to spend more time with.</p></div><a class="text-button" href="/">Review your inbox ↗</a></section>
+<section class="library"><div class="library-heading"><h2>Focus <span class="count">{{ sources|length }}{% if has_next %}+{% endif %}</span></h2><span class="sort-label">↓ NEWEST FIRST</span></div><div id="source-list">
+{% for source in sources %}{% include 'source_row.html' %}{% else %}<div class="empty"><h3>What deserves a closer look?</h3><p>Tap ☆ Focus on any find in Inbox or Library to keep it here.</p><a class="text-button" href="/">Go to Inbox ↗</a></div>{% endfor %}</div>
+<nav class="pagination" aria-label="Pagination">{% if page > 1 %}<a href="?page={{ page - 1 }}">← Previous</a>{% endif %}<span>Page {{ page }}</span>{% if has_next %}<a href="?page={{ page + 1 }}">Next →</a>{% endif %}</nav></section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Connections / Signal{% endblock %}
+{% block content %}
+<section class="page-heading"><div><div class="eyebrow">AUTHORIZED AGENTS</div><h1>Your <em>connections.</em></h1><p>Each agent has its own revocable token. Your password stays in Signal.</p></div></section>
+<section class="panel connections-panel">
+{% for connection in connections %}
+  <article class="connection-row">
+    <div><strong>{{ connection.client_name }}</strong><p class="muted">Connected {{ connection.created_at|date }} · expires {{ connection.expires_at }}</p></div>
+    <form method="post" action="/connections/{{ connection.pair_id }}/revoke"><button class="button danger-button" type="submit">Revoke</button></form>
+  </article>
+{% else %}
+  <div class="empty"><h3>No agents connected.</h3><p>When an MCP client asks for access, Signal will bring you here to approve it.</p></div>
+{% endfor %}
+</section>
+{% endblock %}

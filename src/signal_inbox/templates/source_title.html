@@ -1,0 +1,4 @@
+<div class="inline-field inline-heading" data-inline-key="title" data-source-title="{{ source.id }}" data-inline-original="{{ source.title }}">
+  <h{{ title_level|default(2) }} class="inline-display"><button type="button" class="inline-trigger" data-inline-action="edit" aria-label="Edit source title"><span data-inline-text>{{ source.title }}</span><span class="inline-pencil" aria-hidden="true">✎</span></button></h{{ title_level|default(2) }}>
+  <div data-inline-editor hidden><input value="{{ source.title }}" maxlength="500" required aria-label="Source title"><div class="inline-edit-actions"><button type="button" class="button" data-inline-action="save">Save</button><button type="button" class="text-button" data-inline-action="cancel">Cancel</button><span class="muted">Enter saves · Esc cancels</span></div><p class="inline-error" role="alert" hidden></p></div>
+</div>
