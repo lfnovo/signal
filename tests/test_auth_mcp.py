@@ -67,6 +67,32 @@ async def test_web_login_protects_private_routes_and_mcp_publishes_oauth_metadat
 
 
 @pytest.mark.asyncio
+async def test_hosted_login_accepts_the_public_origin_and_rejects_others(settings):
+    hosted = replace(
+        settings,
+        password="correct horse battery staple",
+        api_url="https://signal.example.com",
+        allowed_hosts=("signal.example.com",),
+    )
+    app = create_app(hosted, database=Database(hosted), ai=FakeAI(), start_worker=False)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="https://signal.example.com",
+        follow_redirects=False,
+    ) as client:
+        form = {"password": hosted.password, "next": "/focus"}
+        signed_in = await client.post(
+            "/login", data=form, headers={"Origin": "https://signal.example.com"}
+        )
+        assert signed_in.status_code == 303
+        assert "signal_session=" in signed_in.headers["set-cookie"]
+        assert signed_in.headers["access-control-allow-origin"] == "https://signal.example.com"
+        for origin in ("https://evil.example", "http://signal.example.com"):
+            rejected = await client.post("/login", data=form, headers={"Origin": origin})
+            assert rejected.status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_mcp_catalog_is_shared_by_in_process_and_transport_clients(settings):
     db = Database(settings)
     server = build_mcp_server(db, FakeAI())

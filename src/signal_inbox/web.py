@@ -156,6 +156,7 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
     chat_locks = {}
     public_url = settings.api_url.rstrip("/")
     public_parts = urlsplit(public_url)
+    public_origin = f"{public_parts.scheme}://{public_parts.netloc}"
     auth_manager = (
         AuthManager(settings.password, settings.data_dir, public_parts.scheme == "https")
         if settings.password
@@ -208,6 +209,7 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(dict.fromkeys(allowed_hosts)))
     app.add_middleware(
         CORSMiddleware,
+        allow_origins=[public_origin],
         allow_origin_regex=r"chrome-extension://[a-p]{32}|http://(localhost|127\.0\.0\.1)(:[0-9]+)?",
         allow_methods=["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
         allow_headers=["*"],
@@ -227,6 +229,7 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
         if (
             origin
             and not mcp_public
+            and origin != public_origin
             and not re.fullmatch(
                 r"chrome-extension://[a-p]{32}|http://(localhost|127\.0\.0\.1)(:[0-9]+)?", origin
             )
