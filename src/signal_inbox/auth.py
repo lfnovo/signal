@@ -102,6 +102,33 @@ class SignalOAuthProvider(
         self.issuer = str(AnyHttpUrl(issuer))
         self.resource = resource
 
+    async def create_capture_token(self, name: str) -> str:
+        name = name.strip()
+        if not 1 <= len(name) <= 80:
+            raise ValueError("Token name must have 1–80 characters.")
+        token = "signal_capture_" + secrets.token_urlsafe(32)
+        await self._put(
+            "capture_token",
+            token,
+            {"token_id": secrets.token_hex(16), "name": name, "created_at": now()},
+        )
+        return token
+
+    async def valid_capture_token(self, token: str) -> bool:
+        if not token.startswith("signal_capture_") or len(token) > 100:
+            return False
+        return bool(await self._get("capture_token", token))
+
+    async def capture_tokens(self):
+        return await self.db.query(
+            "SELECT token_id, name, created_at FROM capture_token ORDER BY created_at DESC"
+        )
+
+    async def revoke_capture_token(self, token_id: str):
+        await self.db.query(
+            "DELETE capture_token WHERE token_id = $token_id", {"token_id": token_id}
+        )
+
     async def _put(self, table: str, key: str, values: dict):
         return one(
             await self.db.query(

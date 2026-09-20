@@ -131,3 +131,21 @@ Uma aresta tem `source` e `target` (IDs de tópicos), `kind: shared_sources`, `s
 ## YouTube queue state
 
 A source delayed by the YouTube cooldown remains `status: pending`, with `stage: youtube_wait`. `GET /api/sources/{id}` also returns `youtube_resume_at`, the earliest extraction eligibility recorded for that wait (actual start can be later while other work runs). The global deadline is internal queue state. Retrying or reprocessing respects it; no new client parameters are required.
+
+## Tokens de captura (Atalhos do iPhone)
+
+Com `SIGNAL_PASSWORD` configurada, **Connections** permite criar tokens nomeados e revogá-los.
+`POST /connections/capture` recebe o formulário `name` (1–80 caracteres após trim) e mostra o
+segredo uma única vez. `POST /connections/capture/{token_id}/revoke` revoga esse token.
+Essas operações exigem sessão web; as páginas de Connections usam `Cache-Control: no-store`.
+
+O token é aceito exclusivamente em `POST /api/sources`, no header
+`Authorization: Bearer <token>`, com JSON `{"url":"https://example.com"}`.
+Retorna `202` com `source` (metadados compactos) e `created`: `true` para uma captura nova,
+`false` para uma duplicata, preservando sua coleção e seu estado. Não espera o processamento.
+Credencial ausente, inválida, revogada ou usada fora desse escopo retorna `401` nas rotas
+privadas web. Um header Authorization presente não ganha privilégios da sessão web.
+A senha humana e os tokens OAuth MCP não são aceitos como tokens de captura. O token de captura
+não dá acesso ao MCP. Tokens não expiram automaticamente; revogue-os em Connections.
+
+Veja o [passo a passo do atalho](iphone-shortcut.md).

@@ -240,12 +240,26 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
             return JSONResponse({"detail": "This file is over the 100 MB limit."}, status_code=413)
         public_web = path == "/login" or path == "/api/health" or path.startswith("/static/")
         if auth_manager and not (mcp_public or public_web):
-            if not auth_manager.valid_session(request.cookies.get(SESSION_COOKIE)):
+            authorization = request.headers.get("authorization")
+            if authorization is not None:
+                scheme, _, token = authorization.partition(" ")
+                if (
+                    path != "/api/sources"
+                    or request.method != "POST"
+                    or scheme.lower() != "bearer"
+                    or not await oauth_provider.valid_capture_token(token)
+                ):
+                    return JSONResponse(
+                        {"detail": "Invalid capture credentials or scope."}, status_code=401
+                    )
+            elif not auth_manager.valid_session(request.cookies.get(SESSION_COOKIE)):
                 if request.method == "GET" and "text/html" in request.headers.get("accept", ""):
                     target = path + ("?" + request.url.query if request.url.query else "")
                     return RedirectResponse("/login?next=" + quote(target), status_code=303)
                 return JSONResponse({"detail": "Authentication required."}, status_code=401)
         response = await call_next(request)
+        if path.startswith("/connections"):
+            response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
         form_action = "'self'"
@@ -372,11 +386,32 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
 
     @app.get("/connections", response_class=HTMLResponse)
     async def connections(request: Request):
+        return await connections_page(request)
+
+    async def connections_page(request: Request, capture_token: str | None = None):
         return templates.TemplateResponse(
             request=request,
             name="connections.html",
-            context={"connections": await oauth_provider.connections() if oauth_provider else []},
+            context={
+                "connections": await oauth_provider.connections() if oauth_provider else [],
+                "capture_tokens": await oauth_provider.capture_tokens() if oauth_provider else [],
+                "capture_token": capture_token,
+                "capture_endpoint": public_url + "/api/sources",
+            },
         )
+
+    @app.post("/connections/capture", response_class=HTMLResponse)
+    async def create_capture_token(request: Request, name: str = Form(min_length=1, max_length=80)):
+        if not oauth_provider:
+            raise HTTPException(400, "Set SIGNAL_PASSWORD to create capture tokens.")
+        token = await oauth_provider.create_capture_token(name)
+        return await connections_page(request, token)
+
+    @app.post("/connections/capture/{token_id}/revoke")
+    async def revoke_capture_token(token_id: str):
+        if oauth_provider:
+            await oauth_provider.revoke_capture_token(token_id)
+        return RedirectResponse("/connections", status_code=303)
 
     @app.post("/connections/{pair_id}/revoke")
     async def revoke_connection(pair_id: str):

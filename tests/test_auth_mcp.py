@@ -351,3 +351,124 @@ async def test_remote_mcp_oauth_flow_reaches_protected_tool_catalog(db):
             assert catalog.status_code == 200, catalog.text
             names = {tool["name"] for tool in catalog.json()["result"]["tools"]}
             assert {"search_sources", "ask_source", "update_topic_context"} <= names
+
+
+@pytest.mark.asyncio
+async def test_capture_token_scope_and_credentials(settings, monkeypatch):
+    protected = replace(settings, password="owner password")
+    app = create_app(protected, database=Database(protected), ai=FakeAI(), start_worker=False)
+    app.state.oauth_provider.valid_capture_token = AsyncMock(side_effect=lambda t: t == "valid")
+    capture = AsyncMock(
+        return_value=(
+            {
+                "id": "a" * 64,
+                "title": "Test",
+                "status": "pending",
+                "stage": "queued",
+                "kind": "url",
+                "original": "https://example.com",
+            },
+            True,
+        )
+    )
+    monkeypatch.setattr("signal_inbox.web.add_url", capture)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url=protected.api_url
+    ) as client:
+        assert (
+            await client.post("/api/sources", json={"url": "https://example.com"})
+        ).status_code == 401
+        await client.post("/login", data={"password": protected.password})
+        # An existing web session must not elevate a supplied capture credential.
+        for credential in ("Bearer wrong", "Bearer owner password", "Basic valid", "Bearer"):
+            response = await client.post(
+                "/api/sources",
+                headers={"Authorization": credential},
+                json={"url": "https://example.com"},
+            )
+            assert response.status_code == 401
+        headers = {"Authorization": "Bearer valid"}
+        for method, path in [
+            ("GET", "/api/sources"),
+            ("GET", "/api/sources/" + "a" * 64),
+            ("POST", "/api/sources/upload"),
+            ("DELETE", "/api/sources/" + "a" * 64),
+            ("PUT", "/api/preferences"),
+            ("GET", "/connections"),
+            ("POST", "/connections/capture"),
+            ("POST", "/connections/capture/test/revoke"),
+        ]:
+            assert (await client.request(method, path, headers=headers)).status_code == 401
+        client.cookies.clear()
+        assert (await client.post("/api/sources", headers=headers, json={})).status_code == 422
+        response = await client.post(
+            "/api/sources", headers=headers, json={"url": "https://example.com"}
+        )
+        assert response.status_code == 202
+        assert response.json()["created"] is True
+        assert capture.await_count == 1
+        # Token-management pages are private, too.
+        assert (
+            await client.post("/connections/capture", data={"name": "iPhone"})
+        ).status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_capture_token_lifecycle_and_url_capture(db):
+    import re
+
+    protected = replace(db.settings, password="owner password")
+    app = create_app(protected, database=db, ai=FakeAI(), start_worker=False)
+    provider = app.state.oauth_provider
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url=protected.api_url
+    ) as client:
+        await client.post("/login", data={"password": protected.password})
+        for name in ("", " " * 3, "x" * 81):
+            assert (await client.post("/connections/capture", data={"name": name})).status_code in {
+                400,
+                422,
+            }
+        page = await client.post("/connections/capture", data={"name": "iPhone"})
+        assert page.status_code == 200
+        assert page.headers["cache-control"] == "no-store"
+        token = re.search(r'value="(signal_capture_[^"]+)"', page.text).group(1)
+        rows = await db.query("SELECT * FROM capture_token")
+        assert len(rows) == 1
+        assert token not in str(rows)
+        assert str(rows[0]["id"].id) == hashlib.sha256(token.encode()).hexdigest()
+        token_id = rows[0]["token_id"]
+        listed = await client.get("/connections")
+        assert token not in listed.text
+        assert "iPhone" in listed.text
+        assert listed.headers["cache-control"] == "no-store"
+        other = await provider.create_capture_token("Other device")
+        assert await provider.load_access_token(token) is None  # Capture token is not MCP OAuth.
+        assert not await provider.valid_capture_token(protected.password)
+        client.cookies.clear()
+        headers = {"Authorization": "Bearer " + token}
+        assert (await client.post("/mcp", headers=headers, json={})).status_code == 401
+        for created in (True, False):
+            response = await client.post(
+                "/api/sources", headers=headers, json={"url": "https://example.com/shortcut-test"}
+            )
+            assert response.status_code == 202
+            assert response.json()["created"] is created
+            assert set(response.json()["source"]) == {
+                "id",
+                "title",
+                "status",
+                "stage",
+                "kind",
+                "original",
+            }
+        await client.post("/login", data={"password": protected.password})
+        assert (await client.post(f"/connections/capture/{token_id}/revoke")).status_code == 303
+        client.cookies.clear()
+        assert (
+            await client.post(
+                "/api/sources", headers=headers, json={"url": "https://example.com/revoked"}
+            )
+        ).status_code == 401
+        assert await provider.valid_capture_token(other)
+        assert not await provider.valid_capture_token(token)

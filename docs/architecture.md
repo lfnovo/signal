@@ -116,3 +116,12 @@ The manual source title is also stored as `title_override`. Worker checkpoint up
 Before a YouTube network attempt, the worker draws an integer delay of 180–300 seconds and writes a deadline to `setting:youtube_queue`. A `finally` block sets the deadline to the end of that attempt plus the same delay, including errors and cancellation. The initial reservation survives an abrupt process crash; graceful cancellation refreshes it. A hard crash cannot record the exact finish time, so recovery respects the last persisted deadline. This is per Signal namespace/database, with the existing local worker lock serializing consumers.
 
 The scheduler scans pending sources in creation order, marks blocked YouTube jobs as `stage = youtube_wait` with `youtube_resume_at`, and selects the first eligible job. Waiting does not increment attempts or mark a source failed. Other domains, files, and jobs with usable extraction checkpoints remain eligible. `once=True` drains eligible work and returns when only delayed jobs remain; the CLI’s existing loop continues to await its captured source. No multi-minute sleep holds up the worker.
+
+### Tokens para captura de URLs
+
+`capture_token` guarda o SHA-256 do segredo como ID do registro e somente nome, data de criação
+e um `token_id` público separado para revogação. O segredo aleatório é mostrado apenas na criação.
+Tokens de captura têm validade até revogação e são independentes das sessões web e do OAuth MCP.
+O middleware aceita esses tokens exclusivamente para `POST /api/sources`, sem elevar seu escopo
+quando um cookie também está presente. Revogação remove o registro, e cada captura verifica o
+banco novamente. A fila e a deduplicação usam o mesmo intake da web e do MCP.

@@ -107,6 +107,14 @@ uv run --project /path/to/signal signal mcp
 
 Agents can capture URLs and files, browse or search Inbox/Library/Focus, read and chat with sources, triage and rename them, and work with topic context. Permanent deletion is intentionally absent from the first MCP tool set. Resources expose individual sources, previews, topics and the three collection views.
 
+## Save from your iPhone
+
+Open **Connections** and create a capture token named “iPhone”. It is shown once and can only
+submit URLs; revoke it there at any time. In Apple Shortcuts, create a Share Sheet shortcut that
+posts the shared URL to `/api/sources` with the token in the Authorization header. The response
+confirms whether the link was newly saved or already existed. Follow the
+[iPhone shortcut setup](docs/iphone-shortcut.md); the same steps are available in Connections.
+
 ## Follow the topics
 
 **Topics** in the menu groups your finds into official topics (green) and AI suggestions (violet). Each generated summary also proposes 3–5 relevant topics, reusing your official vocabulary when it fits. Approve, rename, merge or delete topics across the library, or edit associations directly on a source. Topics you create are official; manual choices survive regeneration.

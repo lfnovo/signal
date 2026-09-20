@@ -5,3 +5,4 @@
 - [Arquitetura e dados](architecture.md): intake, fila, identidade, MCP, extração, resumos, embeddings e chat.
 - [API e MCP](api.md): endpoints web, OAuth, tools e resources para agentes.
 - [Verificação](verification.md): testes automatizados, CI, imagem e validação com serviços reais.
+- [Atalho do iPhone](iphone-shortcut.md): token de captura e configuração no menu Compartilhar.

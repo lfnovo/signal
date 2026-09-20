@@ -12,4 +12,39 @@
   <div class="empty"><h3>No agents connected.</h3><p>When an MCP client asks for access, Signal will bring you here to approve it.</p></div>
 {% endfor %}
 </section>
+<section class="panel connections-panel capture-panel">
+  <h2>Capture from your iPhone</h2>
+  <p>Create a token for a shortcut that saves links to your Inbox. It can only submit URLs, not read or change your library. Tokens stay valid until revoked.</p>
+  {% if auth_enabled %}
+  <form method="post" action="/connections/capture" class="capture-token-form">
+    <label for="capture-name">Device or shortcut name</label>
+    <input id="capture-name" name="name" required maxlength="80" placeholder="iPhone" autocomplete="off">
+    <button class="button primary" type="submit">Create capture token</button>
+  </form>
+  {% else %}<p>Set SIGNAL_PASSWORD to create capture tokens.</p>{% endif %}
+  {% if capture_token %}
+  <div class="capture-secret">
+    <label for="capture-token">Copy your token now — it will not be shown again.</label>
+    <input id="capture-token" type="text" readonly value="{{ capture_token }}" autocomplete="off" spellcheck="false">
+  </div>
+  {% endif %}
+  {% for token in capture_tokens %}
+  <article class="connection-row">
+    <div><strong>{{ token.name }}</strong><p class="muted">Created {{ token.created_at|date }} · URL capture only</p></div>
+    <form method="post" action="/connections/capture/{{ token.token_id }}/revoke"><button class="button danger-button" type="submit">Revoke</button></form>
+  </article>
+  {% endfor %}
+  <details>
+    <summary>Set up “Save to Signal” in Apple Shortcuts</summary>
+    <ol>
+      <li>Create a shortcut, enable Show in Share Sheet and accept URLs and Safari web pages.</li>
+      <li>Add Get URLs from Input, using Shortcut Input, then Repeat with Each URL.</li>
+      <li>Inside the repeat, add Get Contents of URL with <code>{{ capture_endpoint }}</code> and method POST.</li>
+      <li>Add the Authorization header with <code>Bearer YOUR_TOKEN</code>. Replace YOUR_TOKEN with the token above.</li>
+      <li>Set Request Body to JSON. Add a text field named <code>url</code> and select Repeat Item as its value.</li>
+      <li>Read <code>source.id</code> from the response before showing success. If absent, show <code>detail</code> as an error. When <code>created</code> is true, show “Saved to Inbox”; otherwise show “Already saved”.</li>
+    </ol>
+    <p class="muted">The token belongs only in the request header. Remove it before sharing your shortcut with anyone else.</p>
+  </details>
+</section>
 {% endblock %}
