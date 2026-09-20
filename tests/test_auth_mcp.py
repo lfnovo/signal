@@ -81,13 +81,16 @@ async def test_hosted_login_accepts_the_public_origin_and_rejects_others(setting
         follow_redirects=False,
     ) as client:
         form = {"password": hosted.password, "next": "/focus"}
+        page = await client.get("/login")
+        assert page.status_code == 200
+        assert page.headers["referrer-policy"] == "same-origin"
         signed_in = await client.post(
             "/login", data=form, headers={"Origin": "https://signal.example.com"}
         )
         assert signed_in.status_code == 303
         assert "signal_session=" in signed_in.headers["set-cookie"]
         assert signed_in.headers["access-control-allow-origin"] == "https://signal.example.com"
-        for origin in ("https://evil.example", "http://signal.example.com"):
+        for origin in ("https://evil.example", "http://signal.example.com", "null"):
             rejected = await client.post("/login", data=form, headers={"Origin": origin})
             assert rejected.status_code == 403
 

@@ -19,7 +19,7 @@ services:
       - signal-database:/home/nonroot
 
   signal:
-    image: ghcr.io/lfnovo/signal:0.1.1
+    image: ghcr.io/lfnovo/signal:0.1.2
     pull_policy: always
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}

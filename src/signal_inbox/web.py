@@ -247,7 +247,7 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
                 return JSONResponse({"detail": "Authentication required."}, status_code=401)
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Content-Security-Policy"] = (
             "frame-src https://www.youtube-nocookie.com; "
             "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; "
