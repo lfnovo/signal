@@ -38,6 +38,11 @@ O transporte remoto usa Streamable HTTP em `/mcp`. Clientes descobrem os metadad
 
 Para agentes executados na mesma máquina, `uv run signal mcp` inicia o mesmo servidor via stdio. Nesse transporte, o processo local já representa a autorização do usuário e não abre o fluxo OAuth.
 
+O parâmetro `iss` nos callbacks OAuth de aprovação e recusa coincide exatamente com o `issuer`
+publicado em `/.well-known/oauth-authorization-server` e com `authorization_servers` nos metadados
+do recurso MCP. Ambos usam a mesma serialização de URL HTTP; uma origem sem caminho inclui a
+barra final, mesmo quando `SIGNAL_API_URL` é configurada sem ela.
+
 Tools disponíveis: status, captura de URL/arquivo, listagem e busca, leitura e conversa com fonte, movimentação Inbox/Library, Focus, renomeação, leitura de tópicos e atualização de contexto. A primeira versão não expõe exclusão permanente. Resources JSON:
 
 - `signal://sources/{identifier}`

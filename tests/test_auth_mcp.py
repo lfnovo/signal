@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import time
 from dataclasses import replace
 from unittest.mock import AsyncMock
 from urllib.parse import parse_qs, urlsplit
@@ -20,6 +21,49 @@ from signal_inbox.web import create_app
 class FakeAI:
     async def close(self):
         pass
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("api_url", ["https://signal.example", "https://signal.example/"])
+@pytest.mark.parametrize("approved", [True, False])
+async def test_oauth_callback_issuer_matches_discovery_exactly(settings, api_url, approved):
+    protected = replace(settings, password="test password", api_url=api_url)
+    app = create_app(protected, database=Database(protected), ai=FakeAI(), start_worker=False)
+    provider = app.state.oauth_provider
+    provider._put = AsyncMock()
+    provider._delete = AsyncMock(
+        return_value={
+            "client_id": "test-client",
+            "expires_at": time.time() + 600,
+            "params": {
+                "state": "test-state",
+                "scopes": ["signal"],
+                "code_challenge": "challenge",
+                "redirect_uri": "http://127.0.0.1:8765/callback",
+                "redirect_uri_provided_explicitly": True,
+            },
+        }
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url=api_url
+    ) as client:
+        metadata = await client.get("/.well-known/oauth-authorization-server")
+        resource = await client.get("/.well-known/oauth-protected-resource/mcp")
+        assert metadata.status_code == resource.status_code == 200
+        issuer = metadata.json()["issuer"]
+        assert resource.json()["authorization_servers"] == [issuer]
+        await client.post("/login", data={"password": protected.password})
+        response = await client.post(
+            "/oauth/approve",
+            data={"request_id": "test-request", "decision": "approve" if approved else "deny"},
+        )
+        assert response.status_code == 303
+        callback = parse_qs(urlsplit(response.headers["location"]).query)
+        assert callback["iss"] == [issuer]
+        assert callback["state"] == ["test-state"]
+        assert ("code" in callback) is approved
+        if not approved:
+            assert callback["error"] == ["access_denied"]
 
 
 @pytest.mark.asyncio
@@ -181,12 +225,13 @@ async def test_oauth_approval_issues_refreshes_and_revokes_client_tokens(db):
         ),
     )
     request_id = parse_qs(urlsplit(approval_url).query)["request"][0]
+    assert urlsplit(approval_url).path == "/oauth/approve"
     assert (await provider.pending(request_id))[1].client_name == "Test agent"
 
     callback = await provider.finish_authorization(request_id, approved=True)
     params = parse_qs(urlsplit(callback).query)
     assert params["state"] == ["state-value"]
-    assert params["iss"] == [issuer]
+    assert params["iss"] == [issuer + "/"]
     code = await provider.load_authorization_code(client, params["code"][0])
     issued = await provider.exchange_authorization_code(client, code)
     access = await provider.load_access_token(issued.access_token)
@@ -217,6 +262,8 @@ async def test_remote_mcp_oauth_flow_reaches_protected_tool_catalog(db):
             base_url="http://127.0.0.1:8020",
             follow_redirects=False,
         ) as client:
+            metadata = await client.get("/.well-known/oauth-authorization-server")
+            assert metadata.status_code == 200
             registration = await client.post(
                 "/register",
                 json={
@@ -259,6 +306,7 @@ async def test_remote_mcp_oauth_flow_reaches_protected_tool_catalog(db):
                 data={"request_id": request_id, "decision": "approve"},
             )
             callback = parse_qs(urlsplit(approved.headers["location"]).query)
+            assert callback["iss"] == [metadata.json()["issuer"]]
 
             token = await client.post(
                 "/token",

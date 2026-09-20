@@ -16,7 +16,7 @@ from mcp.server.auth.provider import (
     construct_redirect_uri,
 )
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
-from pydantic import AnyUrl
+from pydantic import AnyHttpUrl, AnyUrl
 from surrealdb import RecordID
 
 from .database import Database, now, one
@@ -98,7 +98,8 @@ class SignalOAuthProvider(
 
     def __init__(self, db: Database, issuer: str, resource: str):
         self.db = db
-        self.issuer = issuer.rstrip("/")
+        # Match the URL serialization used by MCP discovery; OAuth compares issuers exactly.
+        self.issuer = str(AnyHttpUrl(issuer))
         self.resource = resource
 
     async def _put(self, table: str, key: str, values: dict):
@@ -142,7 +143,7 @@ class SignalOAuthProvider(
                 "created_at": now(),
             },
         )
-        return f"{self.issuer}/oauth/approve?request={quote(request_id)}"
+        return f"{self.issuer.rstrip('/')}/oauth/approve?request={quote(request_id)}"
 
     async def pending(self, request_id: str):
         row = await self._get("auth_pending", request_id)
