@@ -23,6 +23,7 @@ from .ai import AI
 from .auth import SESSION_COOKIE, AuthManager, SignalOAuthProvider
 from .config import EXTRACTION_KEYS, Settings
 from .database import Database, ensure_record_id, public
+from .diagnostics import safe_error
 from .extraction import ENGINE_CHOICES, validate_engines
 from .intake import add_file, add_url
 from .mcp_server import build_mcp_server
@@ -30,7 +31,7 @@ from .providers import discover_models, provider_choices, validate_provider
 from .search import Search
 from .topic_context import context_signature
 from .topics import Topics
-from .worker import safe_error, supervise_worker
+from .worker import supervise_worker
 
 BASE = Path(__file__).parent
 

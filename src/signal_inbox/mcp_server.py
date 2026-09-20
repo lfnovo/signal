@@ -19,10 +19,10 @@ from pydantic import AnyHttpUrl
 from .ai import AI
 from .auth import SignalOAuthProvider
 from .database import Database, public
+from .diagnostics import safe_error
 from .intake import add_file, add_url
 from .search import Search
 from .topics import Topics
-from .worker import safe_error
 
 READ_ONLY = ToolAnnotations(
     readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False

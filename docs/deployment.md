@@ -39,14 +39,14 @@ se precisar publicar outra porta local.
 Para fixar uma versão em vez de acompanhar `latest`:
 
 ```bash
-SIGNAL_IMAGE=ghcr.io/lfnovo/signal:0.1.5 docker compose up -d
+SIGNAL_IMAGE=ghcr.io/lfnovo/signal:0.1.6 docker compose up -d
 ```
 
 ## Portainer
 
 Crie uma Stack no Portainer pelo **Web editor** e cole o conteúdo de
 [`compose.portainer.yaml`](../compose.portainer.yaml). Esse arquivo não contém `build:` nem depende
-de um arquivo `.env`: ele baixa diretamente `ghcr.io/lfnovo/signal:0.1.5`.
+de um arquivo `.env`: ele baixa diretamente `ghcr.io/lfnovo/signal:0.1.6`.
 
 Antes de fazer o deploy, adicione estas variáveis em **Environment variables** da Stack:
 

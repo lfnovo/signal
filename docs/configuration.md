@@ -140,3 +140,13 @@ Filtros: Inbox/Library/ambos, somente Focus, link/arquivo e tópico. Ao filtrar,
 Cada grupo de fontes usa o seu modelo de embeddings original. Nome, definição e interesse pessoal dos tópicos usam o modelo de embeddings atual das preferências. Consultas e textos de contexto são mantidos em cache em memória por cinco minutos; não há reindexação do acervo. Falhas de um provider não impedem os resultados dos demais; avisos indicam cobertura parcial. Fontes ainda sem vetores só entram na busca textual.
 
 A primeira versão faz comparação local em Python, com leitura do catálogo filtrado no SurrealDB, adequada ao acervo pessoal. Não usa índice vetorial aproximado. Há três chamadas de embeddings concorrentes no máximo, timeout de 25 segundos por lote e cortes mínimos de similaridade para descartar candidatos fracos. Os escores são sinais de ordenação, não probabilidades de relevância. Resultados não disparam polling semântico periódico; uma nova busca ou ação explícita atualiza a lista.
+
+## Falhas de processamento
+
+Os logs do worker incluem ID da fonte, etapa, provider/modelo configurado, mensagem original
+da exceção e traceback completo (incluindo exceções encadeadas, sem variáveis locais).
+Valores de segredos conhecidos no ambiente e senhas configuradas são mascarados.
+A página da fonte também mostra a etapa e a mensagem original com essa proteção.
+Depois de corrigir a configuração, use Retry. Falhas anteriores continuam com a mensagem
+antiga até uma nova tentativa. A versão 0.1.6 melhora o diagnóstico; não altera modelos nem
+reprocessa automaticamente o acervo.

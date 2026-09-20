@@ -1,6 +1,6 @@
 [project]
 name = "signal-inbox"
-version = "0.1.5"
+version = "0.1.6"
 description = "A personal reading inbox with extraction, summaries, source chat and MCP access"
 readme = "README.md"
 license = "MIT"

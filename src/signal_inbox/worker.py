@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from .ai import AI, chunk_text
 from .config import EXTRACTION_KEYS
 from .database import Database, now
+from .diagnostics import diagnostic_stack, redact_secrets, safe_error
 from .extraction import extraction_options, run_extraction
 from .topic_context import context_signature
 from .topics import Topics
@@ -37,11 +38,6 @@ def worker_lock(settings):
             fcntl.flock(handle, fcntl.LOCK_UN)
 
 
-def safe_error(exc):
-    # Provider exceptions can contain response bodies, URLs or credentials.
-    return f"{type(exc).__name__}: this step failed. Check your connection, model and provider settings, then retry."
-
-
 async def process_source(db: Database, ai: AI, source):
     if needs_youtube_extraction(source):
         deadline = await cooldown_until(db)
@@ -59,7 +55,11 @@ async def _process_source(db: Database, ai: AI, source):
     identifier = source["id"]
     created_at = source["created_at"]
 
+    stage = "starting"
+
     async def update(identifier, values):
+        nonlocal stage
+        stage = values.get("stage", stage)
         return await db.update(identifier, values, expected_created_at=created_at)
 
     original_revision = source.get("revision", 0)
@@ -166,6 +166,7 @@ async def _process_source(db: Database, ai: AI, source):
         )
         model = published["embedding_model"] if regenerating else ai.settings.embedding_model
         summary_vector = (await ai.embed([source["summary"]], provider=provider, model=model))[0]
+        stage = "publishing"
         await Topics(db).publish(
             identifier,
             {
@@ -192,8 +193,24 @@ async def _process_source(db: Database, ai: AI, source):
         await update(identifier, {"status": "pending"})
         raise
     except Exception as exc:
-        logger.error("Source %s failed (%s)", identifier, type(exc).__name__)
-        await update(identifier, {"status": "error", "error": safe_error(exc)})
+        provider = (
+            ai.settings.embedding_provider if stage == "embedding" else ai.settings.llm_provider
+        )
+        model = ai.settings.embedding_model if stage == "embedding" else ai.settings.llm_model
+        if stage == "embedding" and regenerating:
+            provider, model = published["embedding_provider"], published["embedding_model"]
+        secrets = (db.settings.password, db.settings.db_password)
+        detail = safe_error(exc, secrets)
+        logger.error(
+            "Source %s failed stage=%s provider=%r model=%r: %s\n%s",
+            identifier,
+            stage,
+            redact_secrets(str(provider), secrets),
+            redact_secrets(str(model), secrets),
+            detail,
+            diagnostic_stack(exc, secrets),
+        )
+        await update(identifier, {"status": "error", "error": f"{stage}: {detail}"})
 
 
 async def run_worker(db: Database, ai: AI, once=False):
@@ -222,5 +239,9 @@ async def supervise_worker(db, ai):
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.error("Worker connection failed (%s); retrying in 5s", type(exc).__name__)
+            logger.error(
+                "Worker failed; retrying in 5s: %s\n%s",
+                safe_error(exc, (db.settings.password, db.settings.db_password)),
+                diagnostic_stack(exc, (db.settings.password, db.settings.db_password)),
+            )
             await asyncio.sleep(5)

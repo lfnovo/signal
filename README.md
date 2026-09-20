@@ -71,6 +71,8 @@ Save your preferences and they apply to the next capture or message, with no res
 
 On a source page, click **Reprocess** beside **The Full Story** to reprocess with a different engine or transcription model. Signal rebuilds the summary and embeddings, keeps the previous content until success, and archives earlier chats separately. Docling is available through the optional `docling` dependency group; its first run may download models. See [engine setup](docs/configuration.md#arquivos-e-extração) for external services.
 
+Processing failures show the failed stage and error message on the source page; server logs include the traceback and configured provider/model, with known secrets masked.
+
 API keys stay in `.env` and are never sent to the browser. The provider selector shows whether a key is present; that does not verify credits or access to a particular model. Restart the app after changing keys or connection settings in `.env`.
 
 The initial defaults are `google` / `gemini-2.5-flash` for language and `google` / `gemini-embedding-001` for embeddings, using `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
