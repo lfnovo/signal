@@ -1,0 +1,53 @@
+src/signal_inbox/auth.py
+  s_4ce55756971322::t_3394e65d925e1e 111-112
+  s_4ce55756971322::t_c132f7c18d35d2 105-110,113-131
+src/signal_inbox/templates/connections.html
+  s_4ce55756971322::t_c20e9971da596e 15,19
+  s_4ce55756971322::t_b08567b60b23e1 16-18,20-49
+src/signal_inbox/static/style.css
+  s_4ce55756971322::t_c20e9971da596e 84-85
+docs/README.md
+  s_4ce55756971322::t_7379f1972b122f 8
+docs/deployment.md
+  s_4ce55756971322::t_93988d380db8cb 42,49
+compose.portainer.yaml
+  s_4ce55756971322::t_93988d380db8cb 22
+tests/test_auth_mcp.py
+  s_4ce55756971322::t_e76e6c22231047 354-449,451-474
+  s_4ce55756971322::t_c20e9971da596e 450
+pyproject.toml
+  s_4ce55756971322::t_93988d380db8cb 3
+docs/iphone-shortcut.md
+  s_4ce55756971322::t_7379f1972b122f 1-49
+src/signal_inbox/web.py
+  s_4ce55756971322::t_3394e65d925e1e 252-254
+  s_4ce55756971322::t_c132f7c18d35d2 243-251,255,261-262,389-391,395-400,403-414
+  s_4ce55756971322::t_81b5ff36521f17 415
+src/signal_inbox/schemas.surrealql
+  s_4ce55756971322::t_c132f7c18d35d2 21
+docs/architecture.md
+  s_4ce55756971322::t_c20e9971da596e 123
+  s_4ce55756971322::t_7379f1972b122f 119-122,124-127
+docs/api.md
+  s_4ce55756971322::t_7379f1972b122f 134-151
+README.md
+  s_4ce55756971322::t_7379f1972b122f 110-117
+uv.lock
+  s_4ce55756971322::t_ed3aaa90bbf9bf 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "92173da3fe78c1c82da981776511cea1e10a858e",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
