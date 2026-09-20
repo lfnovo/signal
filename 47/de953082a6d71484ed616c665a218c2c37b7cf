@@ -1,0 +1,29 @@
+compose.portainer.yaml
+  s_4ce55756971322::t_7f38f4dc3d85b1 22
+pyproject.toml
+  s_4ce55756971322::t_7f38f4dc3d85b1 3
+src/signal_inbox/web.py
+  s_4ce55756971322::t_261e8689f3fc62 250
+tests/test_auth_mcp.py
+  s_4ce55756971322::t_261e8689f3fc62 84-86,93
+docs/deployment.md
+  s_4ce55756971322::t_7f38f4dc3d85b1 42,49
+uv.lock
+  s_4ce55756971322::t_8c5cc0dad439f9 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "47de953082a6d71484ed616c665a218c2c37b7cf",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
