@@ -248,10 +248,14 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
+        form_action = "'self'"
+        if callback_origin := getattr(request.state, "oauth_callback_origin", None):
+            form_action += " " + callback_origin
         response.headers["Content-Security-Policy"] = (
             "frame-src https://www.youtube-nocookie.com; "
             "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; "
-            "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+            "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; "
+            f"form-action {form_action}"
         )
         return response
 
@@ -333,6 +337,13 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
         if not pending:
             raise HTTPException(400, "This authorization request expired.")
         row, client = pending
+        # Chromium applies form-action to the redirect after the consent POST too.
+        # Use only this pending request's already validated OAuth callback.
+        callback = urlsplit(row["params"]["redirect_uri"])
+        callback_origin = f"{callback.scheme}://{callback.netloc}"
+        if not re.fullmatch(r"https?://[a-zA-Z0-9.\-\[\]:]+", callback_origin):
+            raise HTTPException(400, "This OAuth callback must use an HTTP or HTTPS origin.")
+        request.state.oauth_callback_origin = callback_origin
         return templates.TemplateResponse(
             request=request,
             name="oauth_approve.html",

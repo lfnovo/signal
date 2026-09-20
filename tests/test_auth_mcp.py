@@ -1,6 +1,7 @@
 import base64
 import hashlib
 from dataclasses import replace
+from unittest.mock import AsyncMock
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
@@ -19,6 +20,33 @@ from signal_inbox.web import create_app
 class FakeAI:
     async def close(self):
         pass
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "callback", ["http://127.0.0.1:8765/callback", "https://agent.example/callback"]
+)
+async def test_consent_form_allows_only_its_registered_callback(settings, callback):
+    protected = replace(settings, password="test password")
+    app = create_app(protected, database=Database(protected), ai=FakeAI(), start_worker=False)
+    app.state.oauth_provider.pending = AsyncMock(
+        return_value=(
+            {"params": {"redirect_uri": callback, "scopes": ["signal"]}},
+            OAuthClientInformationFull(client_id="test-client", client_name="Test agent"),
+        )
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1:8020"
+    ) as client:
+        await client.post("/login", data={"password": protected.password})
+        page = await client.get("/oauth/approve?request=test-request")
+        assert page.status_code == 200
+        parts = urlsplit(callback)
+        assert page.headers["content-security-policy"].endswith(
+            f"form-action 'self' {parts.scheme}://{parts.netloc}"
+        )
+        ordinary = await client.get("/login")
+        assert ordinary.headers["content-security-policy"].endswith("form-action 'self'")
 
 
 def test_password_sessions_are_signed_expiring_and_bound_to_password(tmp_path):
