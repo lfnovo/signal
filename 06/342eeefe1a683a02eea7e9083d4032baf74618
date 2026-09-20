@@ -1,0 +1,31 @@
+pyproject.toml
+  s_4ce55756971322::t_59d10bea669afb 3
+tests/test_auth_mcp.py
+  s_4ce55756971322::t_15b4891508178b 70-88,90-94
+  s_4ce55756971322::t_5c9c7e1b3e394f 89
+  s_4ce55756971322::t_e3e28d434503ba 69
+src/signal_inbox/web.py
+  s_4ce55756971322::t_15b4891508178b 159,212,232
+compose.portainer.yaml
+  s_4ce55756971322::t_59d10bea669afb 22
+docs/deployment.md
+  s_4ce55756971322::t_59d10bea669afb 42,49
+uv.lock
+  s_4ce55756971322::t_ae84c94698366f 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "06342eeefe1a683a02eea7e9083d4032baf74618",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
