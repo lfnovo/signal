@@ -141,3 +141,31 @@ async def test_triage_reader_renders_safe_summary_topics_and_full_page_link(db):
         assert (await client.get("/sources/" + "f" * 64 + "/triage")).status_code == 404
         inbox = await client.get("/")
         assert 'id="triage-reader"' in inbox.text and 'id="url-form"' in inbox.text
+
+
+async def test_processing_actions_in_reader_and_feed(db):
+    source, _ = await add_url(db, "https://example.com/processing-actions")
+    sid = public(source["id"])
+    app = create_app(db.settings, database=db, ai=FakeAI(db.settings), start_worker=False)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://localhost:8020"
+    ) as client:
+        for status in ("ready", "error", "pending", "processing"):
+            await db.update(sid, {"status": status, "error": "Provider <unavailable>"})
+            preview = (await client.get(f"/sources/{sid}/triage")).text
+            inbox = (await client.get("/")).text
+            assert ('data-processing-action="retry"' in preview) is (status == "error")
+            assert ('data-row-action="retry"' in inbox) is (status == "error")
+            assert 'data-processing-action="reprocess"' in preview
+            assert ('data-processing-action="reprocess" disabled' in preview) is (
+                status in {"pending", "processing"}
+            )
+            if status == "error":
+                assert "Provider &lt;unavailable&gt;" in preview
+        await db.update(sid, {"status": "error"})
+        assert (await client.post(f"/api/sources/{sid}/retry")).status_code == 200
+        assert (await db.get(sid))["status"] == "pending"
+        await db.update(sid, {"status": "ready"})
+        assert (await client.post(f"/api/sources/{sid}/reprocess", json={})).status_code == 202
+        current = await db.get(sid)
+        assert current["status"] == "pending" and current["reprocess_requested"] is True

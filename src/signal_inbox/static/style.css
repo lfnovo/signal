@@ -83,3 +83,5 @@ body:has(.topics-workspace) main{max-width:none;margin:0;padding:28px}.topics-la
 @media(max-width:760px){.workspace-topic-heading>div:first-child{width:100%}.inline-heading [data-inline-editor] input{font-size:17px}}
 
 .capture-panel{margin-top:24px;padding:24px}.capture-panel>p{line-height:1.7;max-width:760px}.capture-token-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;max-width:640px;margin:24px 0}.capture-token-form label{grid-column:1/-1}.capture-token-form input{min-width:0;width:100%}.capture-secret{display:grid;gap:10px;margin:24px 0}.capture-secret input{width:100%;font-size:12px}.capture-panel details{margin-top:24px;line-height:1.8}.capture-panel summary{cursor:pointer}.capture-panel li{margin:10px 0}.capture-panel code{overflow-wrap:anywhere}@media(max-width:760px){.capture-token-form{grid-template-columns:1fr}.capture-panel{padding:18px}.capture-panel ol{padding-left:20px}}
+
+.triage-error{padding:12px;border:1px solid #ff919d55;border-radius:6px;margin:16px 0}.triage-error p{white-space:pre-wrap;overflow-wrap:anywhere;color:#ffbec6;font-size:12px}.row-retry{white-space:nowrap}

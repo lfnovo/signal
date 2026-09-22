@@ -4,6 +4,7 @@
     <button class="button" type="button" data-triage-action="focus" aria-pressed="{{ 'true' if source.focused else 'false' }}" title="Focus is a bookmark; this find stays in Inbox">{{ '★' if source.focused else '☆' }} Focus <kbd>F</kbd></button>
     <button class="button triage-delete" type="button" data-triage-action="delete">Delete <kbd>⌫</kbd></button>
   </div>
+  <button class="text-button" type="button" data-processing-action="reprocess" {% if source.status in ['pending', 'processing'] %}disabled{% endif %}>Reprocess ↗</button>
   <a class="text-button" href="/sources/{{ source.id }}">Open full page ↗</a>
 </div>
 <div class="triage-reading" data-preview-source="{{ source.id }}">
@@ -11,10 +12,11 @@
   {% include 'source_title.html' %}
   {% if source.kind == 'url' %}<a class="triage-origin" href="{{ source.original }}" target="_blank" rel="noopener noreferrer">{{ source.original }} ↗</a>{% endif %}
   {% if source.status == 'pending' and source.stage == 'youtube_wait' %}<p class="muted">A short YouTube breather. Video extractions are spaced 3–5 minutes apart; other finds keep moving.</p>{% endif %}
+  {% if source.status == 'error' %}<div class="triage-error" role="status"><p>{{ source.error }}</p><button class="button" type="button" data-processing-action="retry">Try again</button></div>{% endif %}
   {% include 'source_topics.html' %}
   <section class="triage-summary"><div class="section-label"><span class="cross">✳</span> THE SHORT VERSION <span class="hint">{{ source.summary_language|default('AI') }}</span></div>
   {% if source.summary %}<div class="prose">{{ source.summary|markdown }}</div>
-  {% elif source.status == 'error' %}<p class="placeholder">This find hit a snag during processing. You can still organize it, or open the full page to retry.</p>
+  {% elif source.status == 'error' %}<p class="placeholder">This find hit a snag during processing. Use Try again to resume processing.</p>
   {% else %}<p class="placeholder">The short version is on its way.</p>{% endif %}</section>
   {% include 'personal_relevance.html' %}
   {% if youtube_video_id %}<details class="triage-full"><summary>▶ Watch video</summary><div class="preview-video" data-youtube-id="{{ youtube_video_id }}"><a href="https://www.youtube.com/watch?v={{ youtube_video_id }}" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a></div></details>{% endif %}

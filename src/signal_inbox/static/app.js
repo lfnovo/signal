@@ -325,6 +325,7 @@ $('#source-list')?.addEventListener('click', async (event) => {
     if (action === 'collection') await api(path + '/collection', json('PUT', { collection: button.dataset.value }));
     else if (action === 'focus') await api(path + '/focus', json('PUT', { focused: button.getAttribute('aria-pressed') !== 'true' }));
     else if (action === 'delete') await api(path, json('DELETE', { confirm: true }));
+    else if (action === 'retry') { await api(path + '/retry', { method: 'POST' }); toast('Queued. We’ll try this find again.'); }
     saved = true;
   } catch (error) { toast(error.message, true); }
   finally {

@@ -190,3 +190,5 @@ Click a topic name, its definition or personal context, or a source title to edi
 YouTube extractions use a random **3–5 minute cooldown after each attempt**, including failures. The first eligible video starts immediately. While videos wait, the worker processes other links and files in queue order. The cooldown is saved in SurrealDB and shared by the web app, extension and CLI worker; restarting Signal or retrying a video does not reset it.
 
 Already-extracted transcripts can continue through summaries and embeddings without waiting. Summary regeneration also proceeds normally; a full YouTube re-extraction waits. Waiting videos display **YouTube cooldown** and remain in the queue. This reduces bursts of requests but does not guarantee that YouTube will avoid or lift a block.
+
+The Inbox reading panel offers **Reprocess** with current preferences. Failed finds show **Try again** in the panel and directly in feed rows, so retries stay in the list. Queued and active jobs cannot be reprocessed again.

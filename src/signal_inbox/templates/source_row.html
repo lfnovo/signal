@@ -4,6 +4,7 @@
   {% if source.match_label %}<div class="search-match-label">{{ source.match_type }} · {{ source.match_label }}</div>{% endif %}
   {% if source.topics %}<div class="row-topics">{% for topic in source.topics %}<a class="topic-chip {{ 'official' if topic.official else 'suggested' }}" href="/topics/{{ topic.id }}" title="{{ 'Official topic' if topic.official else 'AI suggestion' }}">{{ '✓' if topic.official else '✧' }} {{ topic.name }}</a>{% endfor %}</div>{% endif %}</div>
   <div class="row-actions" aria-label="Triage {{ source.title }}">
+    {% if source.status == 'error' %}<button class="text-button row-retry" type="button" data-row-action="retry" title="Resume processing this find">Try again ↻</button>{% endif %}
     <div class="collection-toggle" role="group" aria-label="Source collection">
       {% for value, label in [('inbox', 'Inbox'), ('library', 'Library')] %}
       {% set selected = source.get('collection', 'inbox') == value %}

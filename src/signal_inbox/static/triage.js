@@ -55,6 +55,28 @@
     event.preventDefault(); row.focus(); select(row.dataset.sourceId, !signature);
   });
   reader.addEventListener('click', async event => {
+    const processing = event.target.closest('[data-processing-action]');
+    if (processing) {
+      if (processing.disabled || list.dataset.mutating === 'true' || !current()) return;
+      const id = selectedId;
+      const action = processing.dataset.processingAction;
+      if (action === 'reprocess' && !confirm('Reprocess this find using your current preferences? This rebuilds extraction, summary and embeddings. Previous chats are kept separately.')) return;
+      processing.disabled = true;
+      list.dataset.mutating = 'true';
+      listRevision++;
+      let queued = false;
+      try {
+        await api('/api/sources/' + id + '/' + action, json('POST', {}));
+        queued = true;
+        toast('Queued. Processing will continue in the background.');
+      } catch (error) { toast(error.message, true); }
+      finally { processing.disabled = false; list.dataset.mutating = 'false'; }
+      if (queued) {
+        try { await refreshInbox(); if (selectedId === id) await select(id, true); }
+        catch { toast('Queued. Refresh the list to see the change.'); }
+      }
+      return;
+    }
     const button = event.target.closest('[data-triage-action]');
     if (!button || list.dataset.mutating === 'true' || !current()) return;
     const selector = button.dataset.triageAction === 'collection'

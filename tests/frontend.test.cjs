@@ -153,3 +153,26 @@ test('regenerate submits optional steering separately from extraction settings',
   assert.deepEqual(JSON.parse(app.calls[0].options.body), { steering: 'Focus on practical applications' });
   assert.equal(app.node('#save-button').disabled, false);
 });
+
+for (const rejectRetry of [false, true]) {
+  test(`feed retry ${rejectRetry ? 'reports failures' : 'queues the source'} without navigating`, async () => {
+    const ui = frontend({ rejectRetry });
+    const button = ui.node('#row-retry');
+    const row = ui.node('#failed-row');
+    button.dataset.rowAction = 'retry';
+    button.closest = () => row;
+    row.querySelectorAll = () => [button];
+    row.querySelector = () => ({ textContent: 'Failed find' });
+    ui.node('#source-list').setAttribute = () => {};
+    await ui.node('#source-list').listeners.click({
+      target: { closest: () => button }, preventDefault() {}, stopPropagation() {},
+    });
+    const requests = ui.calls.filter(call => call.path.endsWith('/retry'));
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].options.method, 'POST');
+    assert.equal(button.disabled, false);
+    assert.equal(ui.node('#source-list').dataset.mutating, 'false');
+    assert.equal(ui.context.location.replaced, undefined);
+    if (rejectRetry) assert.equal(ui.node('#toast').textContent, 'Try again');
+  });
+}
