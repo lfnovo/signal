@@ -1,0 +1,44 @@
+compose.portainer.yaml
+  s_4ce55756971322::t_10ff3cb6284cb2 22
+README.md
+  s_4ce55756971322::t_0465fcb97f29df 104-105
+tests/oauth.test.cjs
+  s_4ce55756971322::t_b2970f1b91efdd 1-33
+src/signal_inbox/web.py
+  s_4ce55756971322::t_0229963cd81ffb 262,265,270,352,381-389
+src/signal_inbox/templates/oauth_complete.html
+  s_4ce55756971322::t_7401e5aa273711 1-17
+docs/api.md
+  s_4ce55756971322::t_0465fcb97f29df 152-155
+docs/architecture.md
+  s_4ce55756971322::t_0465fcb97f29df 128-131
+pyproject.toml
+  s_4ce55756971322::t_10ff3cb6284cb2 3
+tests/test_auth_mcp.py
+  s_4ce55756971322::t_6b9b41156c1987 3-4,23-28,56,74-77,94,326
+  s_4ce55756971322::t_7f19cef26a2ca2 37-43,87-92,109
+src/signal_inbox/static/oauth.js
+  s_4ce55756971322::t_7401e5aa273711 1-15
+src/signal_inbox/templates/oauth_approve.html
+  s_4ce55756971322::t_0229963cd81ffb 11,17
+docs/deployment.md
+  s_4ce55756971322::t_10ff3cb6284cb2 42,49
+uv.lock
+  s_4ce55756971322::t_d896e9d9489ec2 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f8cfb42c20d6b189be46fbaaa7b1d8abc4b4a29",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
