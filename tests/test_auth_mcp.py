@@ -1,5 +1,7 @@
 import base64
 import hashlib
+import html
+import re
 import time
 from dataclasses import replace
 from unittest.mock import AsyncMock
@@ -18,6 +20,12 @@ from signal_inbox.mcp_server import build_mcp_server
 from signal_inbox.web import create_app
 
 
+def handoff_url(response):
+    match = re.search(r'id="oauth-callback"[^>]*href="([^"]+)"', response.text)
+    assert match, response.text
+    return html.unescape(match.group(1))
+
+
 class FakeAI:
     async def close(self):
         pass
@@ -26,7 +34,13 @@ class FakeAI:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("api_url", ["https://signal.example", "https://signal.example/"])
 @pytest.mark.parametrize("approved", [True, False])
-async def test_oauth_callback_issuer_matches_discovery_exactly(settings, api_url, approved):
+@pytest.mark.parametrize(
+    "redirect_uri",
+    ["http://127.0.0.1:8765/callback", "https://www.cursor.com/agents/mcp/oauth/callback"],
+)
+async def test_oauth_callback_issuer_matches_discovery_exactly(
+    settings, api_url, approved, redirect_uri
+):
     protected = replace(settings, password="test password", api_url=api_url)
     app = create_app(protected, database=Database(protected), ai=FakeAI(), start_worker=False)
     provider = app.state.oauth_provider
@@ -39,7 +53,7 @@ async def test_oauth_callback_issuer_matches_discovery_exactly(settings, api_url
                 "state": "test-state",
                 "scopes": ["signal"],
                 "code_challenge": "challenge",
-                "redirect_uri": "http://127.0.0.1:8765/callback",
+                "redirect_uri": redirect_uri,
                 "redirect_uri_provided_explicitly": True,
             },
         }
@@ -57,8 +71,10 @@ async def test_oauth_callback_issuer_matches_discovery_exactly(settings, api_url
             "/oauth/approve",
             data={"request_id": "test-request", "decision": "approve" if approved else "deny"},
         )
-        assert response.status_code == 303
-        callback = parse_qs(urlsplit(response.headers["location"]).query)
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+        assert response.headers["referrer-policy"] == "no-referrer"
+        callback = parse_qs(urlsplit(handoff_url(response)).query)
         assert callback["iss"] == [issuer]
         assert callback["state"] == ["test-state"]
         assert ("code" in callback) is approved
@@ -68,9 +84,14 @@ async def test_oauth_callback_issuer_matches_discovery_exactly(settings, api_url
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "callback", ["http://127.0.0.1:8765/callback", "https://agent.example/callback"]
+    "callback",
+    [
+        "http://127.0.0.1:8765/callback",
+        "https://agent.example/callback",
+        "https://www.cursor.com/agents/mcp/oauth/callback",
+    ],
 )
-async def test_consent_form_allows_only_its_registered_callback(settings, callback):
+async def test_consent_form_posts_only_to_signal(settings, callback):
     protected = replace(settings, password="test password")
     app = create_app(protected, database=Database(protected), ai=FakeAI(), start_worker=False)
     app.state.oauth_provider.pending = AsyncMock(
@@ -85,10 +106,7 @@ async def test_consent_form_allows_only_its_registered_callback(settings, callba
         await client.post("/login", data={"password": protected.password})
         page = await client.get("/oauth/approve?request=test-request")
         assert page.status_code == 200
-        parts = urlsplit(callback)
-        assert page.headers["content-security-policy"].endswith(
-            f"form-action 'self' {parts.scheme}://{parts.netloc}"
-        )
+        assert page.headers["content-security-policy"].endswith("form-action 'self'")
         ordinary = await client.get("/login")
         assert ordinary.headers["content-security-policy"].endswith("form-action 'self'")
 
@@ -305,7 +323,7 @@ async def test_remote_mcp_oauth_flow_reaches_protected_tool_catalog(db):
                 "/oauth/approve",
                 data={"request_id": request_id, "decision": "approve"},
             )
-            callback = parse_qs(urlsplit(approved.headers["location"]).query)
+            callback = parse_qs(urlsplit(handoff_url(approved)).query)
             assert callback["iss"] == [metadata.json()["issuer"]]
 
             token = await client.post(

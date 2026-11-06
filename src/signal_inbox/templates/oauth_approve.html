@@ -8,10 +8,11 @@
   <p>This agent will be able to capture, search, read and organize your private library.</p>
   <div class="permission-list"><span class="tiny-label">REQUESTED ACCESS</span>{% for scope in scopes %}<code>{{ scope }}</code>{% endfor %}</div>
   <p class="muted">The agent never receives your password. Signal gives it a separate token that you can revoke from Connections.</p>
-  <form method="post" action="/oauth/approve" class="dialog-footer">
+  <form method="post" action="/oauth/approve" class="dialog-footer" id="oauth-consent">
     <input type="hidden" name="request_id" value="{{ request_id }}">
     <button class="button" type="submit" name="decision" value="deny">Deny</button>
     <button class="button primary" type="submit" name="decision" value="approve">Approve connection</button>
   </form>
 </section>
+<script src="{{ asset_url('oauth.js') }}" defer></script>
 {% endblock %}

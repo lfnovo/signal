@@ -101,6 +101,8 @@ Tap **☆ Focus** on a source to mark it for a closer look. **Focus** in the men
 
 Signal exposes the same MCP server over Streamable HTTP and stdio. A remote client connects to `https://your-signal-host/mcp`, discovers OAuth automatically and opens Signal in the browser for approval. Each client gets its own rotating tokens; revoke one at any time from **Connections** without changing the Signal password.
 
+After approval, Signal returns you to the agent automatically. If the app does not open, use **Continue to agent** on the completion page.
+
 For a local agent, configure its stdio command as:
 
 ```bash

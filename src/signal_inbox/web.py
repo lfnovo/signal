@@ -259,18 +259,15 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
                     return RedirectResponse("/login?next=" + quote(target), status_code=303)
                 return JSONResponse({"detail": "Authentication required."}, status_code=401)
         response = await call_next(request)
-        if path.startswith("/connections"):
+        if path.startswith(("/connections", "/oauth/")):
             response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "same-origin"
-        form_action = "'self'"
-        if callback_origin := getattr(request.state, "oauth_callback_origin", None):
-            form_action += " " + callback_origin
+        response.headers.setdefault("Referrer-Policy", "same-origin")
         response.headers["Content-Security-Policy"] = (
             "frame-src https://www.youtube-nocookie.com; "
             "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; "
             "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; "
-            f"form-action {form_action}"
+            "form-action 'self'"
         )
         return response
 
@@ -352,13 +349,11 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
         if not pending:
             raise HTTPException(400, "This authorization request expired.")
         row, client = pending
-        # Chromium applies form-action to the redirect after the consent POST too.
-        # Use only this pending request's already validated OAuth callback.
+        # Only HTTP(S) callbacks are supported by the browser handoff.
         callback = urlsplit(row["params"]["redirect_uri"])
         callback_origin = f"{callback.scheme}://{callback.netloc}"
         if not re.fullmatch(r"https?://[a-zA-Z0-9.\-\[\]:]+", callback_origin):
             raise HTTPException(400, "This OAuth callback must use an HTTP or HTTPS origin.")
-        request.state.oauth_callback_origin = callback_origin
         return templates.TemplateResponse(
             request=request,
             name="oauth_approve.html",
@@ -383,7 +378,15 @@ def create_app(settings=None, *, start_worker=True, database=None, ai=None):
         target = await oauth_provider.finish_authorization(request_id, decision == "approve")
         if not target:
             raise HTTPException(400, "This authorization request expired.")
-        return RedirectResponse(target, status_code=303)
+        # Finish the form submission here. A new document navigates to the validated
+        # callback so form-action does not constrain the client's redirect chain.
+        response = templates.TemplateResponse(
+            request=request,
+            name="oauth_complete.html",
+            context={"callback_url": target},
+        )
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
 
     @app.get("/connections", response_class=HTMLResponse)
     async def connections(request: Request):

@@ -149,3 +149,7 @@ A senha humana e os tokens OAuth MCP não são aceitos como tokens de captura. O
 não dá acesso ao MCP. Tokens não expiram automaticamente; revogue-os em Connections.
 
 Veja o [passo a passo do atalho](iphone-shortcut.md).
+
+### Conclusão da aprovação OAuth
+
+`POST /oauth/approve` requer sessão web e consome a solicitação uma única vez. Aprovação e recusa retornam uma página HTML (200) que navega para o callback validado, com `code` ou `error`, `state` e `iss`. O link **Continue to agent** permite continuar sem JavaScript; não é necessário reenviar o formulário. Solicitações já consumidas ou expiradas continuam retornando 400. As páginas OAuth usam `Cache-Control: no-store`; a conclusão usa `Referrer-Policy: no-referrer`.

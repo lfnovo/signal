@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Return to your agent / Signal</title>
+  <link rel="stylesheet" href="{{ asset_url('style.css') }}">
+  <script src="{{ asset_url('oauth.js') }}" defer></script>
+</head>
+<body>
+  <main class="auth-decision panel">
+    <h1>Returning to your agent…</h1>
+    <p>If the app does not open automatically, continue below.</p>
+    <a id="oauth-callback" class="button primary" href="{{ callback_url }}" rel="noreferrer">Continue to agent</a>
+  </main>
+</body>
+</html>

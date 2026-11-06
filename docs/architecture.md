@@ -125,3 +125,7 @@ Tokens de captura têm validade até revogação e são independentes das sessõ
 O middleware aceita esses tokens exclusivamente para `POST /api/sources`, sem elevar seu escopo
 quando um cookie também está presente. Revogação remove o registro, e cada captura verifica o
 banco novamente. A fila e a deduplicação usam o mesmo intake da web e do MCP.
+
+### Navegação após consentimento
+
+O POST de aprovação termina em um documento local antes de navegar para o callback registrado. Isso separa a navegação externa do envio do formulário: redirecionamentos do cliente (como `www.cursor.com` para `cursor.com`) não ficam sujeitos ao `form-action` do consentimento. O CSP mantém `form-action 'self'`, sem liberar domínios externos. O destino vem exclusivamente do provedor OAuth, é escapado no HTML e não é recebido como parâmetro livre do navegador. O código continua de uso único, protegido por PKCE; a página de conclusão não é armazenada em cache e não envia Referer.
