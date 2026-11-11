@@ -1,0 +1,35 @@
+src/signal_inbox/static/mobile-header.js
+  s_4ce55756971322::t_6cf887078928ce 1-36
+src/signal_inbox/templates/base.html
+  s_4ce55756971322::t_6cf887078928ce 17
+src/signal_inbox/static/style.css
+  s_4ce55756971322::t_6cf887078928ce 104-113
+tests/mobile-header.test.cjs
+  s_4ce55756971322::t_3f83ce26c2c118 1-46
+compose.portainer.yaml
+  s_4ce55756971322::t_21f32627b0dbb5 22
+docs/deployment.md
+  s_4ce55756971322::t_21f32627b0dbb5 42,49
+pyproject.toml
+  s_4ce55756971322::t_21f32627b0dbb5 3
+README.md
+  s_4ce55756971322::t_53b44cf6b90a7c 174
+uv.lock
+  s_4ce55756971322::t_5bc0fe1d178b0a 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7aee424640d671b6681e562a7a025f4382c59113",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
