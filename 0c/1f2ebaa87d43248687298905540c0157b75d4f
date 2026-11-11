@@ -1,0 +1,35 @@
+pyproject.toml
+  s_4ce55756971322::t_1948c34dc16dd1 3
+src/signal_inbox/static/style.css
+  s_4ce55756971322::t_1556e295493a24 88-103
+src/signal_inbox/static/triage.js
+  s_4ce55756971322::t_1556e295493a24 7-44,58,62,69-70,86-87,91-93,97-99,102,134,147,156-160
+tests/triage.test.cjs
+  s_4ce55756971322::t_c7a8cddc708e85 1-71
+compose.portainer.yaml
+  s_4ce55756971322::t_1948c34dc16dd1 22
+docs/deployment.md
+  s_4ce55756971322::t_1948c34dc16dd1 42,49
+README.md
+  s_4ce55756971322::t_d263a3b8c6abc7 174
+docs/architecture.md
+  s_4ce55756971322::t_949e6c7b1b2d78 132-135
+uv.lock
+  s_4ce55756971322::t_a1db533dbd6338 2639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c1f2ebaa87d43248687298905540c0157b75d4f",
+  "prompts": {},
+  "sessions": {
+    "s_4ce55756971322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ace1-faef-7532-88ae-a89d551c9d4b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Luis Novo <lfnovo@gmail.com>"
+    }
+  }
+}
