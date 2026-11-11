@@ -101,3 +101,13 @@ body:has(.topics-workspace) main{max-width:none;margin:0;padding:28px}.topics-la
   #triage-reader .triage-toolbar>.text-button{min-height:44px;display:inline-flex;align-items:center}
   .triage-list .source-row{min-height:64px}
 }
+
+/* Reserve the measured navigation height above the mobile reader. */
+@media(max-width:760px){
+  body{--mobile-header-height:112px;--mobile-header-offset:var(--mobile-header-height)}
+  .topbar{transition:transform .18s ease}
+  body.mobile-header-hidden{--mobile-header-offset:0px}
+  body.mobile-header-hidden .topbar{transform:translateY(-100%);pointer-events:none}
+  body.triage-mobile-open #triage-reader{top:var(--mobile-header-offset);height:calc(100dvh - var(--mobile-header-offset))}
+}
+@media(prefers-reduced-motion:reduce){.topbar{transition:none}}

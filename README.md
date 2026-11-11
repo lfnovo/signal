@@ -171,7 +171,7 @@ Signal is available under the [MIT License](LICENSE). Contributions are describe
 
 ### Inbox triage
 
-The Inbox keeps capture within reach and places a compact list beside a reading panel. Select a find to review its summary and edit topics inline. Library and confirmed deletion advance to the next item; Focus remains an independent bookmark. Open full page retains the complete reading and chat experience. Selection is remembered within the browser tab. Arrow keys browse, Left/Right move between the list and actions, and existing triage shortcuts remain available. On phones, Inbox starts with the list only. Tap a find to read it full-screen; Inbox or browser Back returns to the same list position. Library and confirmed deletion return to the list, while Focus keeps the reader open. Desktop retains the two-pane layout and automatic selection.
+The Inbox keeps capture within reach and places a compact list beside a reading panel. Select a find to review its summary and edit topics inline. Library and confirmed deletion advance to the next item; Focus remains an independent bookmark. Open full page retains the complete reading and chat experience. Selection is remembered within the browser tab. Arrow keys browse, Left/Right move between the list and actions, and existing triage shortcuts remain available. On phones, Inbox starts with the list only. Tap a find to read it full-screen; Inbox or browser Back returns to the same list position. Library and confirmed deletion return to the list, while Focus keeps the reader open. The mobile menu and search hide when scrolling down and return when scrolling up, leaving room for reader controls. Desktop retains the two-pane layout and automatic selection.
 
 ### Topics that know what you’re looking for
 
