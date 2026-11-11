@@ -129,3 +129,7 @@ banco novamente. A fila e a deduplicação usam o mesmo intake da web e do MCP.
 ### Navegação após consentimento
 
 O POST de aprovação termina em um documento local antes de navegar para o callback registrado. Isso separa a navegação externa do envio do formulário: redirecionamentos do cliente (como `www.cursor.com` para `cursor.com`) não ficam sujeitos ao `form-action` do consentimento. O CSP mantém `form-action 'self'`, sem liberar domínios externos. O destino vem exclusivamente do provedor OAuth, é escapado no HTML e não é recebido como parâmetro livre do navegador. O código continua de uso único, protegido por PKCE; a página de conclusão não é armazenada em cache e não envia Referer.
+
+### Inbox em telas pequenas
+
+Até 760px, o Inbox abre somente a lista e carrega o preview apenas por toque explícito. O leitor ocupa a tela, preservando a lista e sua posição por baixo; Voltar usa uma entrada de histórico local. A seleção persistida do desktop não é restaurada no mobile. Remover o item aberto da lista fecha o leitor sem selecionar o próximo; polling e eventos de seleção do teclado não abrem o leitor. Acima desse breakpoint, o comportamento de duas colunas permanece.

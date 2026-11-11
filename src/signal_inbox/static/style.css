@@ -85,3 +85,19 @@ body:has(.topics-workspace) main{max-width:none;margin:0;padding:28px}.topics-la
 .capture-panel{margin-top:24px;padding:24px}.capture-panel>p{line-height:1.7;max-width:760px}.capture-token-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;max-width:640px;margin:24px 0}.capture-token-form label{grid-column:1/-1}.capture-token-form input{min-width:0;width:100%}.capture-secret{display:grid;gap:10px;margin:24px 0}.capture-secret input{width:100%;font-size:12px}.capture-panel details{margin-top:24px;line-height:1.8}.capture-panel summary{cursor:pointer}.capture-panel li{margin:10px 0}.capture-panel code{overflow-wrap:anywhere}@media(max-width:760px){.capture-token-form{grid-template-columns:1fr}.capture-panel{padding:18px}.capture-panel ol{padding-left:20px}}
 
 .triage-error{padding:12px;border:1px solid #ff919d55;border-radius:6px;margin:16px 0}.triage-error p{white-space:pre-wrap;overflow-wrap:anywhere;color:#ffbec6;font-size:12px}.row-retry{white-space:nowrap}
+
+/* Mobile Inbox is a list with a separate reader; desktop keeps both panes. */
+.triage-back{display:none}
+@media(max-width:760px){
+  .inbox-workspace .triage-list #source-list{max-height:none;overflow:visible}
+  #triage-reader{display:none}
+  body.triage-mobile-open{overflow:hidden}
+  body.triage-mobile-open #triage-reader{display:block;position:fixed;inset:0;z-index:30;max-height:none;height:100dvh;margin:0;border:0;border-radius:0;overflow:auto;background:var(--panel);padding-bottom:calc(86px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+  #triage-reader .triage-back{display:block;position:sticky;top:0;z-index:5;background:var(--panel);width:100%;min-height:52px;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  #triage-reader .triage-toolbar{position:static;justify-content:space-between}
+  #triage-reader .triage-decisions{position:fixed;bottom:0;left:0;right:0;z-index:6;background:var(--panel);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:8px}
+  #triage-reader .triage-decisions .button{flex:1;min-height:44px;padding:10px 6px;font-size:12px}
+  #triage-reader .triage-key-hint{display:none}
+  #triage-reader .triage-toolbar>.text-button{min-height:44px;display:inline-flex;align-items:center}
+  .triage-list .source-row{min-height:64px}
+}
